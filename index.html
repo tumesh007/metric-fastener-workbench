@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Metric Fastener Workbench</title>
+<style>
+:root{color-scheme:dark;--bg:#10151d;--panel:#19222e;--line:#2a394b;--ink:#edf3fa;--muted:#9eafc1;--accent:#80d8c4}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}main{max-width:1120px;margin:36px auto;padding:0 20px}.top{margin-bottom:22px}.top h1{font-size:30px;margin:0 0 4px}.top p{color:var(--muted);margin:0}.layout{display:grid;grid-template-columns:minmax(290px,390px) 1fr;gap:20px}.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px}.controls{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{display:flex;flex-direction:column;gap:6px}.field.wide{grid-column:1/-1}label{font-size:13px;color:var(--muted)}select,input{width:100%;padding:10px 11px;color:var(--ink);background:#101720;border:1px solid #35475b;border-radius:8px;font:inherit}input[type=range]{padding:8px 0;accent-color:var(--accent)}.val{color:var(--accent);font-variant-numeric:tabular-nums}button{cursor:pointer;border:0;border-radius:9px;background:var(--accent);color:#10201e;padding:12px 16px;font-weight:750;font-size:14px}.buttons{display:flex;gap:10px;margin-top:20px}.buttons button+button{background:#334457;color:var(--ink)}.preview{min-height:470px;display:flex;flex-direction:column}.preview-head{display:flex;justify-content:space-between;align-items:center}.preview-head h2{margin:0;font-size:18px}.badge{border:1px solid var(--line);border-radius:999px;padding:4px 10px;color:var(--accent);font-size:12px}.stage{flex:1;display:grid;place-items:center;min-height:330px;overflow:hidden}.stage svg{width:min(100%,470px);height:auto;max-height:390px}.specs{border-top:1px solid var(--line);padding-top:13px;display:flex;gap:22px;flex-wrap:wrap;color:var(--muted);font-size:13px}.specs b{color:var(--ink);font-weight:600}.note{color:var(--muted);font-size:12px;margin-top:18px}.hidden{display:none}@media(max-width:760px){main{margin:22px auto}.layout{grid-template-columns:1fr}.preview{min-height:390px}.stage{min-height:270px}}
+</style>
+</head>
+<body><main>
+<header class="top"><h1>Metric Fastener Workbench</h1><p>Configure printable M3, M4, or M5 nuts and bolts, then export a single part or a multi-part print layout.</p></header>
+<div class="layout">
+<section class="card"><div class="controls">
+<div class="field"><label for="part">Part</label><select id="part"><option value="bolt">Bolt</option><option value="nut">Nut</option></select></div>
+<div class="field"><label for="size">Metric size</label><select id="size"><option>M3</option><option>M4</option><option>M5</option></select></div>
+<div class="field wide" id="lengthBox"><label>Bolt length under head <span class="val" id="lengthVal"></span></label><input id="length" type="range" min="6" max="50" step="1" value="16"></div>
+<div class="field" id="headBox"><label for="head">Head style</label><select id="head"><option value="hex">Hex</option><option value="socket">Socket cap</option><option value="phillips">Phillips</option><option value="slotted">Slotted screw</option></select></div>
+<div class="field" id="headDiaBox"><label>Head width / diameter <span class="val" id="headDiaVal"></span></label><input id="headDia" type="range" min="4" max="12" step="0.1" value="5.5"></div>
+<div class="field" id="headHeightBox"><label>Head height <span class="val" id="headHeightVal"></span></label><input id="headHeight" type="range" min="1" max="8" step="0.2" value="2.4"></div>
+<div class="field" id="driveSizeBox"><label id="driveSizeLabel">Drive size <span class="val" id="driveSizeVal"></span></label><input id="driveSize" type="range" min="1" max="8" step="0.1" value="2.5"></div>
+<div class="field" id="driveWidthBox"><label id="driveWidthLabel">Drive width <span class="val" id="driveWidthVal"></span></label><input id="driveWidth" type="range" min="0.3" max="2.5" step="0.1" value="0.7"></div>
+<div class="field wide" id="driveDepthBox"><label>Recess depth <span class="val" id="driveDepthVal"></span></label><input id="driveDepth" type="range" min="0.4" max="5" step="0.1" value="1.2"></div>
+<div class="field wide hidden" id="nutAfBox"><label>Nut across flats <span class="val" id="nutAfVal"></span></label><input id="nutAf" type="range" min="4" max="12" step="0.1" value="5.5"></div>
+<div class="field wide" id="nutHeightBox"><label>Nut height <span class="val" id="nutHeightVal"></span></label><input id="nutHeight" type="range" min="1" max="8" step="0.2" value="2.4"></div>
+<div class="field"><label>Nuts in batch <span class="val" id="nutCountVal"></span></label><input id="nutCount" type="range" min="0" max="16" step="1" value="4"></div>
+<div class="field"><label>Bolts in batch <span class="val" id="boltCountVal"></span></label><input id="boltCount" type="range" min="0" max="16" step="1" value="4"></div>
+<div class="field wide"><label>Thread fit clearance (radial) <span class="val" id="clearVal"></span></label><input id="clearance" type="range" min="0" max="0.6" step="0.05" value="0.2"></div>
+</div><div class="buttons"><button id="download">Download selected .scad</button><button id="downloadMate">Download matching nut</button></div><div class="buttons"><button id="downloadBatch">Download batch .scad</button><button id="downloadBatchStl">Export batch STL</button></div><div class="buttons"><button id="openTip">How to make STL</button></div><p class="note" id="tip">For one combined print file, set the nut and bolt counts and export the batch STL. The parts stay spaced apart as separate pieces in one STL. For direct STL export, start the local server with <code>node server.mjs</code> and open its page.</p><p class="note" id="batchStatus" aria-live="polite"></p></section>
+<section class="card preview"><div class="preview-head"><h2>Model preview</h2><span class="badge" id="badge">BOLT · M3</span></div><div class="stage"><svg id="drawing" viewBox="0 0 440 360" role="img" aria-label="Fastener preview"></svg></div><div class="specs" id="specs"></div></section>
+</div><p class="note">Thread geometry is an ISO-like printable approximation. These plastic parts are for prototypes and light-duty use, not strength-rated hardware. Radial clearance is the extra gap on each mating side.</p>
+</main>
+<script>
+const $=id=>document.getElementById(id), ids=['part','size','length','head','headDia','headHeight','driveSize','driveWidth','driveDepth','nutAf','nutHeight','nutCount','boltCount','clearance'];
+const dims={M3:{d:3,p:.5},M4:{d:4,p:.7},M5:{d:5,p:.8}};
+const fmt=n=>Number(n).toFixed(2).replace(/\.00$/,'');
+function update(){let part=$('part').value,size=$('size').value,d=dims[size].d,p=dims[size].p,nut=part==='nut',head=$('head').value,drive=head!=='hex';$('lengthBox').classList.toggle('hidden',nut);$('headBox').classList.toggle('hidden',nut);$('headDiaBox').classList.toggle('hidden',nut);$('headHeightBox').classList.toggle('hidden',nut);$('driveSizeBox').classList.toggle('hidden',nut||!drive);$('driveWidthBox').classList.toggle('hidden',nut||!(head==='phillips'||head==='slotted'));$('driveDepthBox').classList.toggle('hidden',nut||!drive);$('nutAfBox').classList.toggle('hidden',!nut);$('nutHeightBox').classList.toggle('hidden',!nut);$('lengthVal').textContent=$('length').value+' mm';$('headDiaVal').textContent=$('headDia').value+' mm';$('headHeightVal').textContent=$('headHeight').value+' mm';$('driveSizeVal').textContent=$('driveSize').value+' mm';$('driveWidthVal').textContent=$('driveWidth').value+' mm';$('driveDepthVal').textContent=$('driveDepth').value+' mm';$('nutCountVal').textContent=$('nutCount').value;$('boltCountVal').textContent=$('boltCount').value;$('driveSizeLabel').firstChild.textContent=head==='socket'?'Socket across flats ':head==='phillips'?'Phillips span ':'Slot length ';$('driveWidthLabel').firstChild.textContent=head==='phillips'?'Phillips arm width ':'Slot width ';$('nutAfVal').textContent=$('nutAf').value+' mm';$('nutHeightVal').textContent=$('nutHeight').value+' mm';$('clearVal').textContent=$('clearance').value+' mm';$('badge').textContent=part.toUpperCase()+' · '+size;$('downloadMate').textContent=nut?'Download matching bolt':'Download matching nut';render(part,size,d,p);}
+function render(part,size,d,p){const svg=$('drawing'),nut=part==='nut',cx=220;let shape='';
+if(nut){const af=+$('nutAf').value,sx=Math.min(24,150/af),sy=Math.min(7,46/af),rx=af*sx/2,ry=af*sy/2,top=112,side=Math.max(28,+$('nutHeight').value*12),verts=[[-rx,0],[-rx/2,-ry],[rx/2,-ry],[rx,0],[rx/2,ry],[-rx/2,ry]],pt=(v,yoff=0)=>`${cx+v[0]},${top+v[1]+yoff}`,sideFaces=verts.map((v,i)=>{const n=verts[(i+1)%verts.length];return `<polygon points="${pt(v)} ${pt(n)} ${pt(n,side)} ${pt(v,side)}" fill="${i%2?'#496d6b':'#557f7a'}" stroke="#91c8be" stroke-width="1.5"/>`}).join(''),points=verts.map(v=>pt(v)).join(' ');shape=`${sideFaces}<polygon points="${points}" fill="#83b9ae" stroke="#c0eee4" stroke-width="2"/><ellipse cx="${cx}" cy="${top}" rx="${Math.max(9,rx*.33)}" ry="${Math.max(4,ry*.38)}" fill="#10151d" stroke="#b8e8df" stroke-width="2"/><path d="M${cx-rx*.33} ${top}v${side} M${cx+rx*.33} ${top}v${side}" stroke="#91c8be" stroke-width="2"/>`;
+}else{const length=+$('length').value,hh=+$('headHeight').value,head=$('head').value,scale=Math.min(6.3,220/(length+hh)),shaftH=length*scale,headH=Math.max(16,hh*scale),w=Math.max(60,Math.min(150,+$('headDia').value*15)),shaftW=Math.max(26,d*12),headTop=94,headBottom=headTop+headH,shaftBottom=Math.min(314,headBottom+shaftH),topRy=Math.max(8,w*.20);shape=`<path d="M${cx-shaftW/2} ${headBottom} L${cx-shaftW/2} ${shaftBottom-10} L${cx} ${shaftBottom} L${cx+shaftW/2} ${shaftBottom-10} L${cx+shaftW/2} ${headBottom}Z" fill="#4f7e78" stroke="#a4dfd0" stroke-width="2"/><path d="M${cx-shaftW/2+2} ${headBottom+18}h${shaftW-4} M${cx-shaftW/2+2} ${headBottom+32}h${shaftW-4} M${cx-shaftW/2+2} ${headBottom+46}h${shaftW-4} M${cx-shaftW/2+2} ${headBottom+60}h${shaftW-4} M${cx-shaftW/2+2} ${headBottom+74}h${shaftW-4}" stroke="#b8e8df" stroke-width="2" opacity=".8"/>`;
+if(head==='hex'){let r=w*.52,ry=r*.42,topPts=[[-r,0],[-r/2,-ry],[r/2,-ry],[r,0],[r/2,ry],[-r/2,ry]],sideFaces=topPts.map((v,i)=>{let n=topPts[(i+1)%topPts.length];return `<polygon points="${cx+v[0]},${headTop+v[1]} ${cx+n[0]},${headTop+n[1]} ${cx+n[0]},${headTop+n[1]+headH} ${cx+v[0]},${headTop+v[1]+headH}" fill="${i%2?'#496d6b':'#557f7a'}" stroke="#91c8be" stroke-width="1.5"/>`}).join('');shape+=sideFaces+`<polygon points="${topPts.map(([x,y])=>`${cx+x},${headTop+y}`).join(' ')}" fill="#83b9ae" stroke="#c0eee4" stroke-width="2"/>`;}else{shape+=`<path d="M${cx-w/2} ${headTop+topRy} V${headBottom} H${cx+w/2} V${headTop+topRy}Z" fill="#496d6b" stroke="#a4dfd0" stroke-width="2"/><ellipse cx="${cx}" cy="${headTop+topRy}" rx="${w/2}" ry="${topRy}" fill="#83b9ae" stroke="#c0eee4" stroke-width="2"/>`;let drive=$('driveSize').value,dw=$('driveWidth').value,holeY=headTop+topRy,cavity='';if(head==='socket')cavity=`<polygon points="${cx},${holeY-topRy*.5} ${cx+drive*4},${holeY-topRy*.25} ${cx+drive*4},${holeY+topRy*.25} ${cx},${holeY+topRy*.5} ${cx-drive*4},${holeY+topRy*.25} ${cx-drive*4},${holeY-topRy*.25}" fill="#10151d" stroke="#a4dfd0" stroke-width="1.5"/>`;if(head==='phillips')cavity=`<path d="M${cx-dw*3} ${holeY}h${dw*6} M${cx} ${holeY-topRy*.62}v${topRy*1.24}" stroke="#10151d" stroke-width="${Math.max(3,dw*2.2)}" stroke-linecap="square"/>`;if(head==='slotted')cavity=`<path d="M${cx-w*.3} ${holeY}h${w*.6}" stroke="#10151d" stroke-width="${Math.max(3,dw*2)}"/>`;shape+=cavity;}}
+svg.innerHTML=`<ellipse cx="220" cy="322" rx="105" ry="9" fill="#080c11" opacity=".5"/>${shape}<text x="220" y="348" fill="#9eafc1" text-anchor="middle" font-size="12">${size} · pitch ${p} mm · head face shown</text>`;
+$('specs').innerHTML=nut?`<span>Major diameter <b>${d} mm</b></span><span>Pitch <b>${p} mm</b></span><span>Across flats <b>${$('nutAf').value} mm</b></span><span>Height <b>${$('nutHeight').value} mm</b></span>`:`<span>Major diameter <b>${d} mm</b></span><span>Pitch <b>${p} mm</b></span><span>Length <b>${$('length').value} mm</b></span><span>Head <b>${$('head').selectedOptions[0].textContent}</b></span>`;}
+function source(partOverride=$('part').value){const part=partOverride,size=$('size').value;return `// Generated by Metric Fastener Workbench\npart = "${part}";\nsize = "${size}";\nbolt_length = ${$('length').value};\nhead_style = "${$('head').value}";\nhead_height = ${$('headHeight').value};\nhead_diameter = ${$('headDia').value};\ndrive_size = ${$('driveSize').value};\ndrive_width = ${$('driveWidth').value};\ndrive_depth = ${$('driveDepth').value};\nnut_height = ${$('nutHeight').value};\nnut_across_flats = ${$('nutAf').value};\nthread_clearance = ${$('clearance').value};\nbolt_count = ${$('boltCount').value};\nnut_count = ${$('nutCount').value};\n\n`+SCAD;}
+const SCAD=`/* Parametric printable metric fasteners: M3 / M4 / M5 */
+$fn = 72;
+major_d = size == "M3" ? 3 : size == "M4" ? 4 : 5;
+pitch = size == "M3" ? 0.5 : size == "M4" ? 0.7 : 0.8;
+minor_d = major_d - 1.08*pitch;
+thread_depth = 0.60*pitch;
+module helix_profile(root_r, depth, p, thread_len) {
+    crest = 0.12*p; base = 0.72*p;
+    linear_extrude(height=thread_len + 2*p, twist=360*(thread_len + 2*p)/p,
+                   slices=max(24, ceil((thread_len+2*p)*18/p)), convexity=10)
+        translate([root_r, 0, 0])
+            polygon([[0,-base/2],[depth,-crest/2],[depth,crest/2],[0,base/2]]);
+}
+module external_threaded_shaft() {
+    intersection() {
+        union() {
+            cylinder(d=minor_d + 0.15, h=bolt_length);
+            translate([0,0,-pitch]) helix_profile(minor_d/2 - 0.03, thread_depth, pitch, bolt_length);
+        }
+        cylinder(d=major_d, h=bolt_length);
+    }
+}
+module hex_prism(af, h) { cylinder(r=af/sqrt(3), h=h, $fn=6); }
+module bolt_model() {
+    drive_cut_depth=min(drive_depth,head_height-0.2);
+    union() {
+        external_threaded_shaft();
+        translate([0,0,bolt_length])
+            if (head_style == "hex") hex_prism(head_diameter, head_height);
+            else difference() {
+                cylinder(d=head_diameter, h=head_height);
+                if (head_style == "socket")
+                    translate([0,0,head_height-drive_cut_depth]) cylinder(r=drive_size/sqrt(3), h=drive_cut_depth+0.05, $fn=6);
+                else if (head_style == "phillips")
+                    translate([0,0,head_height-drive_cut_depth]) union() {
+                        translate([-drive_width/2,-drive_size/2,0]) cube([drive_width,drive_size,drive_cut_depth+0.05]);
+                        translate([-drive_size/2,-drive_width/2,0]) cube([drive_size,drive_width,drive_cut_depth+0.05]);
+                    }
+                else if (head_style == "slotted")
+                    translate([0,0,head_height-drive_cut_depth]) translate([-drive_size/2,-drive_width/2,0]) cube([drive_size,drive_width,drive_cut_depth+0.05]);
+        }
+    }
+}
+module nut_model() {
+    difference() {
+        hex_prism(nut_across_flats, nut_height);
+        union() {
+            translate([0,0,-0.1]) cylinder(d=minor_d + 2*thread_clearance, h=nut_height+0.2);
+            translate([0,0,-pitch]) helix_profile((minor_d + 2*thread_clearance)/2, thread_depth + 2*thread_clearance, pitch, nut_height);
+            translate([0,0,-0.01]) cylinder(d=major_d+2*thread_clearance, h=min(0.45,nut_height/4), $fn=72);
+            translate([0,0,nut_height-min(0.45,nut_height/4)]) cylinder(d1=major_d+2*thread_clearance, d2=minor_d+2*thread_clearance, h=min(0.45,nut_height/4)+0.02);
+        }
+    }
+}
+module batch_model() {
+    bolt_spacing=max(head_diameter,major_d)+5;
+    nut_spacing=nut_across_flats+5;
+    nut_row_y=max(head_diameter,nut_across_flats)+6;
+    if (bolt_count>0) for(i=[0:bolt_count-1]) translate([i*bolt_spacing,0,0]) bolt_model();
+    if (nut_count>0) for(i=[0:nut_count-1]) translate([i*nut_spacing,nut_row_y,0]) nut_model();
+}
+if (part == "bolt") bolt_model(); else if (part == "nut") nut_model(); else batch_model();`;
+function saveScad(part){let blob=new Blob([source(part)],{type:'text/plain'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${$('size').value}_${part}_printable.scad`;a.click();URL.revokeObjectURL(a.href)}
+async function exportBatchStl(){const button=$('downloadBatchStl'),status=$('batchStatus');if(+$('nutCount').value+ +$('boltCount').value===0){status.textContent='Set at least one nut or bolt in the batch.';return;}button.disabled=true;button.textContent='Rendering STL…';status.textContent='OpenSCAD is rendering the batch; larger quantities can take a few minutes.';try{const response=await fetch('/api/render',{method:'POST',headers:{'Content-Type':'text/plain'},body:source('batch')});if(!response.ok)throw new Error(await response.text());const blob=await response.blob(),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${$('size').value}_fastener_batch.stl`;a.click();URL.revokeObjectURL(a.href);status.textContent='Batch STL downloaded.';}catch(error){status.textContent=error.message==='Failed to fetch'?'STL export needs the local server. Run node server.mjs in this folder.':`STL export failed: ${error.message}`;}finally{button.disabled=false;button.textContent='Export batch STL';}}
+ids.forEach(id=>$(id).addEventListener('input',update));$('size').addEventListener('change',()=>{let s=$('size').value,af={M3:5.5,M4:7,M5:8}[s],hh={M3:2.4,M4:3.2,M5:4}[s],drive={M3:2.5,M4:3,M5:4}[s];$('headDia').value=af;$('nutAf').value=af;$('headHeight').value=hh;$('nutHeight').value=hh;$('driveSize').value=drive;update()});$('download').addEventListener('click',()=>saveScad($('part').value));$('downloadMate').addEventListener('click',()=>saveScad($('part').value==='nut'?'bolt':'nut'));$('downloadBatch').addEventListener('click',()=>saveScad('batch'));$('downloadBatchStl').addEventListener('click',exportBatchStl);$('openTip').addEventListener('click',()=>{$('tip').classList.toggle('hidden')});update();if(location.hostname.endsWith('.github.io')){$('downloadBatchStl').disabled=true;$('downloadBatchStl').title='GitHub Pages is static; use the batch SCAD download and OpenSCAD to export STL.';$('batchStatus').textContent='On GitHub Pages, download the batch .scad and render it in OpenSCAD to export one STL. The local Mac app supports direct STL export.';}
+</script></body></html>
