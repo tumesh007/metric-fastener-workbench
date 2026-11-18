@@ -4,6 +4,8 @@ Parametric OpenSCAD models and a dependency-free browser customizer for printabl
 
 ## GitHub Pages
 
+Live customizer: <https://tumesh007.github.io/metric-fastener-workbench/>
+
 The hosted page can customize individual parts or a multi-part batch and download the generated `.scad` file. GitHub Pages is static, so direct OpenSCAD STL rendering is available through the local Mac app/server only. On the hosted page, open the downloaded batch `.scad` in OpenSCAD and export it as one STL.
 
 ## Use the web customizer
