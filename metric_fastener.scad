@@ -8,13 +8,13 @@ part = "bolt"; // [bolt, nut, batch]
 size = "M3"; // [M3, M4, M5]
 bolt_length = 16; // [6:1:50] Length under head (mm)
 head_style = "socket"; // [hex, socket, phillips, slotted]
-head_height = 2.4; // [1:0.2:8] mm
-head_diameter = 5.5; // [4:0.1:12] mm (hex across flats; round-head diameter)
-drive_size = 2.5; // [1:0.1:8] Socket size, Phillips span, or slot length (mm)
+head_height = head_style == "hex" ? (size == "M3" ? 2 : size == "M4" ? 2.8 : 3.5) : (size == "M3" ? 3 : size == "M4" ? 4 : 5); // [1:0.2:8] mm
+head_diameter = head_style == "hex" ? (size == "M3" ? 5.5 : size == "M4" ? 7 : 8) : (size == "M3" ? 5.5 : size == "M4" ? 7 : 8.5); // [4:0.1:12] mm (hex across flats; round-head diameter)
+drive_size = size == "M3" ? 2.5 : size == "M4" ? 3 : 4; // [1:0.1:8] Socket size, Phillips span, or slot length (mm)
 drive_width = 0.7; // [0.3:0.1:2.5] Phillips arm / slot width (mm)
 drive_depth = 1.2; // [0.4:0.1:5] Recess depth (mm)
-nut_height = 2.4; // [1:0.2:8] mm
-nut_across_flats = 5.5; // [4:0.1:12] mm
+nut_height = size == "M3" ? 2.4 : size == "M4" ? 3.2 : 4; // [1:0.2:8] mm
+nut_across_flats = size == "M3" ? 5.5 : size == "M4" ? 7 : 8; // [4:0.1:12] mm
 thread_clearance = 0.20; // [0:0.05:0.6] Radial clearance, mm
 bolt_count = 4; // [0:1:16] Used when part is batch
 nut_count = 4; // [0:1:16] Used when part is batch
@@ -59,7 +59,9 @@ module bolt_model() {
         external_threaded_shaft();
         translate([0,0,bolt_length])
             if (head_style == "hex") hex_prism(head_diameter, head_height);
-            else difference() {
+            // Render this small boolean locally so OpenSCAD's fast preview shows
+            // the cavity, instead of coloring the subtractor as a solid green plug.
+            else render() difference() {
                 cylinder(d=head_diameter, h=head_height);
                 if (head_style == "socket")
                     translate([0,0,head_height-drive_cut_depth])
@@ -83,12 +85,16 @@ module nut_model() {
         union() {
             // Through bore with radial allowance, then the internal helical void.
             translate([0,0,-0.1]) cylinder(d=minor_d + 2*thread_clearance, h=nut_height+0.2);
-            translate([0,0,-pitch]) helix_profile((minor_d + 2*thread_clearance)/2,
-                                                   thread_depth + 2*thread_clearance, pitch, nut_height);
+            // Overlap the bore slightly to avoid coincident cutter faces and
+            // non-manifold exports, especially on M5's coarser pitch.
+            translate([0,0,-pitch]) helix_profile((minor_d + 2*thread_clearance)/2 - 0.02,
+                                                   thread_depth, pitch, nut_height);
             // Lead-in on both faces eases engagement and avoids a fragile first crest.
-            translate([0,0,-0.01]) cylinder(d=major_d+2*thread_clearance, h=min(0.45,nut_height/4), $fn=72);
-            translate([0,0,nut_height-min(0.45,nut_height/4)])
+            translate([0,0,-0.01])
                 cylinder(d1=major_d+2*thread_clearance, d2=minor_d+2*thread_clearance,
+                         h=min(0.45,nut_height/4)+0.02);
+            translate([0,0,nut_height-min(0.45,nut_height/4)])
+                cylinder(d1=minor_d+2*thread_clearance, d2=major_d+2*thread_clearance,
                          h=min(0.45,nut_height/4)+0.02);
         }
     }
