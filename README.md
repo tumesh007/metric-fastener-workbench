@@ -27,3 +27,7 @@ Open `metric_fastener.scad` in OpenSCAD and use the Customizer panel, or open `i
 - Thread pitch values use the ISO coarse series (ISO 261); the swept thread form is an approximation for FDM printing, not a certified thread profile. See [ISO 261 coarse pitch table](https://cdn.standards.iteh.ai/samples/4165/ec50482690954e82931c52fdce3bc8bb/ISO-261-1998.pdf) and [ISO 724 basic dimensions](https://standards.iteh.ai/catalog/standards/iso/e95db92c-4080-4105-9dd6-5d42b9923765/iso-724).
 - Default thread clearance is **0.20 mm radially** (0.40 mm diametral). Tune for printer, material and slicer; print a short fit sample first.
 - Plastic bolts and nuts are prototypes for light-duty use, not strength-rated metal replacements. The new self-tapping screws, printed insert mock-ups and wall plugs are experimental geometry, not certified hardware or anchors.
+
+## Troubleshooting and export limits
+
+See the [diagnostic report](docs/WORKBENCH_DIAGNOSTIC_REPORT.md) for the self-tapping screw orientation history, STL export workflow, verified limits on GitHub Pages, and the recommended selected-part STL feature.
