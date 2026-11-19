@@ -98,7 +98,12 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(4173, '127.0.0.1', () => {
-  console.log(`Metric Fastener Workbench: http://127.0.0.1:4173`);
+const port = process.env.PORT || 4173;
+const host = process.env.HOST || '0.0.0.0';
+
+server.listen(port, host, () => {
+  console.log(`Metric Fastener Workbench running at:`);
+  console.log(`  Local:   http://127.0.0.1:${port}`);
+  console.log(`  Network: http://${host === '0.0.0.0' ? '<your-local-ip>' : host}:${port}`);
   console.log(`OpenSCAD renderer: ${openscad}`);
 });

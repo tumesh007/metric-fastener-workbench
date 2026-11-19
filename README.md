@@ -22,6 +22,41 @@ The GitHub Pages web app generates and downloads both parametric `.scad` files a
 
 Open `metric_fastener.scad` in OpenSCAD and use the Customizer panel, or open `index.html` for the browser controls. The browser drawing is illustrative; the OpenSCAD-rendered image above shows the generated geometry.
 
+
+
+## 0.4 mm Nozzle Printability & Slicer Settings
+
+### Can a 0.4 mm nozzle print it?
+- **M3 to M10 (Recommended):** Yes. Standard 0.4 mm nozzle prints these reliably with functional, mating threads.
+- **M2 and M2.5 (Borderline):** Possible with tuned slicing (0.08–0.12 mm layer height, Arachne engine, 25 mm/s outer wall speed). Crests round slightly; best for light retention or self-tapping.
+- **M1 to M1.8 (Not supported on 0.4 mm):** Coarse pitches (0.25–0.35 mm) and minor diameters are narrower than standard 0.42 mm extrusion lines. Threads fuse into solid cylinders. Requires a 0.2 mm nozzle or MSLA/resin printer.
+
+### Recommended Bambu Studio / Slicer Profile (Bambu Lab A1 Mini / Gold PEI)
+| Setting | Recommended Value | Why |
+|---|---|---|
+| **Layer Height** | `0.12 mm` (Optimal) or `0.08 mm` (High detail M2–M3) | Captures 60° thread flank overhangs cleanly |
+| **Wall Generator** | **Arachne** | Adapts extrusion line width along tapering thread crests |
+| **Wall Loops** | `5` to `6` (100% solid walls) | Fastener shanks need maximum shear strength; avoid sparse infill |
+| **Infill** | `100% Rectilinear` | Eliminates internal voids under torque |
+| **Outer Wall Speed** | `25–35 mm/s` | Slow speed prevents thread rounding and corner bulging |
+| **Seam Position** | **Random** | Prevents aligned vertical seam bump from binding nut threads |
+| **Print Orientation** | Cap-face down (Z = 0) | Pre-oriented in models. Bed contact on cap face, zero supports |
+| **Thread Clearance** | `0.20 mm` radial (`0.40 mm` diametral) | Increase to `0.25–0.30 mm` for PETG or tight printers |
+| **Part Cooling** | 100% fan, min layer time 4–6 s | Prevents heat accumulation on small bolt tips |
+
+---
+
+## Local Webserver & Network IP
+
+- **Web App URL (GitHub Pages):** <https://tumesh007.github.io/metric-fastener-workbench/> (Zero install, direct STL export in browser).
+- **Local Webserver URL (Loopback):** `http://127.0.0.1:4173` or `http://localhost:4173`
+- **Local Network / LAN IP:** `http://<your-ip>:4173` (binds to `0.0.0.0:4173`).
+- **Start Local Server:**
+  ```bash
+  node server.mjs
+  ```
+  Or double-click `Metric Fastener Workbench.app` on macOS.
+
 ## Print and fit notes
 
 - Thread pitch values use the ISO coarse series (ISO 261); the swept thread form is an approximation for FDM printing, not a certified thread profile. See [ISO 261 coarse pitch table](https://cdn.standards.iteh.ai/samples/4165/ec50482690954e82931c52fdce3bc8bb/ISO-261-1998.pdf) and [ISO 724 basic dimensions](https://standards.iteh.ai/catalog/standards/iso/e95db92c-4080-4105-9dd6-5d42b9923765/iso-724).
