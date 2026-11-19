@@ -70,7 +70,7 @@ const server = http.createServer(async (req, res) => {
   rendering = true;
   try {
     const source = await readBody(req);
-    const validParts = ['bolt', 'nut', 'washer', 'threaded_rod', 'set_screw', 'tslot_nut', 'self_tapping', 'heat_set_insert', 'wall_plug', 'batch'];
+    const validParts = ["socket_cap","hex_bolt","hex_flange_bolt","button_head","button_flange","countersunk_screw","pan_head","shoulder_screw","thumb_screw","flat_thumb_screw","wing_screw","set_screw_flat","set_screw_cone","wood_hex_screw","tapping_screw","csk_tapping_screw","hex_nut","jam_nut","flange_nut","nyloc_nut","acorn_nut","wing_nut","thumb_nut","flat_thumb_nut","square_nut","flat_washer","fender_washer","spring_washer","threaded_rod","tslot_nut","heat_set_insert","wall_plug","batch","bolt","nut","self_tapping","washer","set_screw"];
     const partMatch = source.match(/part\s*=\s*"([^"]+)"/);
     const requestedPart = partMatch && validParts.includes(partMatch[1]) ? partMatch[1] : 'batch';
 

@@ -1,66 +1,376 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Metric Fastener Workbench</title><style>
-:root{color-scheme:dark;--bg:#10151d;--panel:#19222e;--line:#2a394b;--ink:#edf3fa;--muted:#9eafc1;--accent:#80d8c4}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif}main{max-width:1100px;margin:32px auto;padding:0 18px}.top p,.note{color:var(--muted)}.top a{color:var(--accent)}.layout{display:grid;grid-template-columns:minmax(300px,430px) 1fr;gap:18px}.card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:18px}.controls{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:5px}.wide{grid-column:1/-1}label{font-size:13px;color:var(--muted)}select,input{padding:9px;background:#101720;border:1px solid #35475b;border-radius:8px;color:var(--ink);font:inherit}input[type=range]{padding:4px;accent-color:var(--accent)}button{border:0;border-radius:8px;padding:11px;background:var(--accent);font-weight:700;cursor:pointer}.buttons{display:flex;gap:8px;margin-top:14px}.buttons button+button{background:#334457;color:var(--ink)}.preview{min-height:440px}.stage{min-height:330px;display:grid;place-items:center}.stage svg{width:min(100%,480px);height:auto}.badge,.val{color:var(--accent)}.specs{border-top:1px solid var(--line);padding-top:12px;color:var(--muted);display:flex;gap:15px;flex-wrap:wrap;font-size:13px}.hidden{display:none}.note{font-size:12px}@media(max-width:760px){.layout{grid-template-columns:1fr}}
-</style></head><body><main><header class="top"><h1>Metric Fastener Workbench</h1><p>Configure ISO coarse metric sizes M1–M10, prototype screws, inserts and wall plugs, or arrange several nuts and bolts in one STL. <a href="Metric-Fastener-Workbench-Mac.zip" download>Download the Mac app package</a>.</p></header><div class="layout"><section class="card"><div class="controls">
-<div class="field"><label>Part (FreeCAD Fasteners)</label><select id="part">
-<option value="bolt">Bolt / Machine Screw (ISO 4014 / 4762)</option>
-<option value="nut">Hex Nut (ISO 4032 / Flange / Nyloc / Acorn / Wing)</option>
-<option value="washer">Washer (ISO 7089 Flat / ISO 7093 Fender)</option>
-<option value="threaded_rod">Threaded Rod / Stud (DIN 975)</option>
-<option value="set_screw">Grub / Set Screw (ISO 4026)</option>
-<option value="tslot_nut">T-Slot Nut (2020 / 3030 Extrusion)</option>
-<option value="self_tapping">Self-Tapping / Wood Screw (DIN 571)</option>
-<option value="heat_set_insert">Printed Insert Prototype</option>
-<option value="wall_plug">Wall Plug Prototype</option>
-</select></div>
-<div class="field"><label>Metric coarse size</label><select id="size"></select></div>
-<div class="field wide" id="lengthBox"><label>Bolt / screw length <output id="lengthOut"></output></label><input id="bolt_length" type="range" min="3" max="60" value="16"></div>
-<div class="field" id="headBox"><label>Head style</label><select id="head_style">
-<option value="socket" selected>Socket cap (ISO 4762)</option>
-<option value="hex">Hexagon head (ISO 4017 / DIN 933)</option>
-<option value="hex_flange">Hexagon with flange (EN 1665)</option>
-<option value="button">Button head (ISO 7380)</option>
-<option value="countersunk">Countersunk 90° (ISO 10642)</option>
-<option value="pan">Pan head (ISO 7045)</option>
-<option value="thumb">Knurled thumb screw (DIN 464)</option>
-</select></div>
-<div class="field" id="driveTypeBox"><label>Drive type</label><select id="drive_type">
-<option value="hex_drive" selected>Hex socket (Allen)</option>
-<option value="torx">Hexalobular (Torx - ISO 14579)</option>
-<option value="phillips">Phillips cross</option>
-<option value="slotted">Slotted</option>
-<option value="none">None (solid / outer hex)</option>
-</select></div>
-<div class="field" id="nutStyleBox"><label>Nut type</label><select id="nut_style">
-<option value="standard" selected>Standard hex (ISO 4032 / DIN 934)</option>
-<option value="flange">Flange nut (DIN 6923)</option>
-<option value="nyloc">Lock / Nyloc (DIN 985)</option>
-<option value="acorn">Acorn dome cap (DIN 1587)</option>
-<option value="wing">Wing nut (DIN 315)</option>
-</select></div>
-<div class="field" id="washerStyleBox"><label>Washer type</label><select id="washer_style">
-<option value="standard" selected>Standard flat (ISO 7089 / DIN 125)</option>
-<option value="fender">Fender large OD (ISO 7093 / DIN 9021)</option>
-</select></div>
-<div class="field" id="tslotSeriesBox"><label>Extrusion series</label><select id="tslot_series">
-<option value="20" selected>2020 series (6mm slot)</option>
-<option value="30">3030 series (8mm slot)</option>
-</select></div>
-<div class="field" id="headDiaBox"><label>Head width / diameter (mm)</label><input id="head_diameter" type="number" min="2" max="20" step=".1" value="5.5"></div><div class="field" id="headHeightBox"><label>Head height (mm)</label><input id="head_height" type="number" min="1" max="12" step=".1" value="3"></div>
-<div class="field" id="driveSizeBox"><label>Drive size (mm)</label><input id="drive_size" type="number" min=".5" max="10" step=".1" value="2.5"></div><div class="field" id="driveWidthBox"><label>Drive / slot width (mm)</label><input id="drive_width" type="number" min=".2" max="3" step=".1" value=".7"></div><div class="field wide" id="driveDepthBox"><label>Drive recess depth (mm)</label><input id="drive_depth" type="number" min=".3" max="8" step=".1" value="1.2"></div>
-<div class="field" id="nutAfBox"><label>Nut across flats (mm)</label><input id="nut_across_flats" type="number" min="2" max="24" step=".1" value="5.5"></div><div class="field" id="nutHeightBox"><label>Nut height (mm)</label><input id="nut_height" type="number" min=".8" max="12" step=".1" value="2.4"></div>
-<div class="field wide" id="tapBox"><label>Tapping pitch, prototype (mm)</label><input id="tapping_pitch" type="number" min=".3" max="4" step=".1" value="1"></div>
-<div class="field" id="insertDiaBox"><label>Insert outside diameter (mm)</label><input id="insert_diameter" type="number" min="2" max="24" step=".1" value="4.6"></div><div class="field" id="insertLengthBox"><label>Insert length (mm)</label><input id="insert_length" type="number" min="1" max="25" step=".1" value="4.5"></div><div class="field" id="insertFlangeBox"><label>Flange diameter (0 disables)</label><input id="insert_flange_diameter" type="number" min="0" max="30" step=".1" value="5.2"></div><div class="field" id="insertFlangeHeightBox"><label>Flange height (mm)</label><input id="insert_flange_height" type="number" min="0" max="3" step=".1" value=".5"></div><div class="field" id="insertKnurlsBox"><label>Insert knurls</label><input id="insert_knurl_count" type="number" min="0" max="32" step="1" value="8"></div>
-<div class="field" id="plugDiaBox"><label>Plug diameter (mm)</label><input id="plug_diameter" type="number" min="2" max="30" step=".1" value="7.5"></div><div class="field" id="plugLengthBox"><label>Plug length (mm)</label><input id="plug_length" type="number" min="3" max="80" step="1" value="18"></div><div class="field" id="plugBoreBox"><label>Screw bore diameter (mm)</label><input id="plug_bore_diameter" type="number" min=".5" max="15" step=".1" value="1.7"></div><div class="field" id="plugSlotBox"><label>Split slot width (mm)</label><input id="plug_slot_width" type="number" min="0" max="4" step=".1" value=".8"></div>
-<div class="field wide" id="clearanceBox"><label>Thread fit clearance (radial, mm)</label><input id="thread_clearance" type="number" min="0" max=".8" step=".05" value=".2"></div><div class="field"><label>Nuts in combined file</label><input id="nut_count" type="number" min="0" max="30" value="4"></div><div class="field"><label>Bolts in combined file</label><input id="bolt_count" type="number" min="0" max="30" value="4"></div></div>
-<div class="buttons"><button id="download">Download selected .scad</button><button id="stl">Export selected STL</button></div><div class="buttons"><button id="batch">Download batch .scad</button><button id="stl_batch">Export batch STL</button></div><div class="buttons"><button id="mate">Download matching part</button></div><p class="note" id="status"></p><p class="note">Direct STL export renders watertight binary STL in browser. Works on GitHub Pages &amp; locally.</p></section><section class="card preview"><h2>Model preview <span class="badge" id="badge"></span></h2><div class="stage"><svg id="drawing" viewBox="0 0 440 330" role="img" aria-label="Illustrative model preview"></svg></div><div class="specs" id="specs"></div></section></div><p class="note">New self-tapping screws, printed insert mock-ups and wall plugs are prototype geometry, not certified fasteners, inserts or masonry anchors. Plastic nuts and bolts are not strength-rated metal replacements.</p></main>
-<script>
-const sizes=['M1','M1.2','M1.4','M1.6','M1.8','M2','M2.5','M3','M3.5','M4','M5','M6','M7','M8','M9','M10'];
-const dims={M1:[1,.25],'M1.2':[1.2,.25],'M1.4':[1.4,.3],'M1.6':[1.6,.35],'M1.8':[1.8,.35],M2:[2,.4],'M2.5':[2.5,.45],M3:[3,.5],'M3.5':[3.5,.6],M4:[4,.7],M5:[5,.8],M6:[6,1],M7:[7,1],M8:[8,1.25],M9:[9,1.25],M10:[10,1.5]};
-const $=id=>document.getElementById(id);
-sizes.forEach(s=>$('size').add(new Option(s,s)));
-$('size').value='M3';
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Metric Fastener Workbench (FreeCAD Fasteners Taxonomy)</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #10151d;
+  --panel: #19222e;
+  --line: #2a394b;
+  --ink: #edf3fa;
+  --muted: #9eafc1;
+  --accent: #80d8c4;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.5 system-ui, -apple-system, sans-serif;
+}
+main {
+  max-width: 1200px;
+  margin: 24px auto;
+  padding: 0 16px;
+}
+.top h1 { margin: 0 0 6px; font-size: 26px; }
+.top p, .note { color: var(--muted); }
+.top a { color: var(--accent); }
+.layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 500px) minmax(320px, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+.card {
+  min-width: 0;
+  width: 100%;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  padding: 18px;
+  overflow: hidden;
+}
+.controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+.field {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.wide { grid-column: 1 / -1; }
+label {
+  font-size: 13px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+select, input {
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  padding: 9px;
+  background: #101720;
+  border: 1px solid #35475b;
+  border-radius: 8px;
+  color: var(--ink);
+  font: inherit;
+  box-sizing: border-box;
+}
+select {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  cursor: pointer;
+}
+input[type=range] {
+  padding: 4px;
+  accent-color: var(--accent);
+}
+button {
+  border: 0;
+  border-radius: 8px;
+  padding: 11px;
+  background: var(--accent);
+  color: #0b131c;
+  font-weight: 700;
+  cursor: pointer;
+  flex: 1;
+}
+button:hover { filter: brightness(1.1); }
+.buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+.buttons button + button {
+  background: #334457;
+  color: var(--ink);
+}
+.preview {
+  min-width: 0;
+  min-height: 440px;
+  display: flex;
+  flex-direction: column;
+}
+.preview h2 {
+  margin-top: 0;
+  font-size: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.stage {
+  min-height: 330px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+.stage svg {
+  width: 100%;
+  max-width: 440px;
+  height: auto;
+  display: block;
+}
+.badge, .val { color: var(--accent); }
+.specs {
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+  color: var(--muted);
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  font-size: 13px;
+}
+.hidden { display: none !important; }
+.note { font-size: 12px; margin: 8px 0; }
+@media (max-width: 960px) {
+  .layout { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<main>
+<header class="top">
+  <h1>Metric Fastener Workbench</h1>
+  <p>ISO coarse metric (M1–M10) CAD generator based on FreeCAD Fasteners Workbench taxonomy. <a href="Metric-Fastener-Workbench-Mac.zip" download>Download Mac App package</a>.</p>
+</header>
 
-const core=`function nominal_d(s) = s=="M1"?1:s=="M1.2"?1.2:s=="M1.4"?1.4:s=="M1.6"?1.6:s=="M1.8"?1.8:s=="M2"?2:s=="M2.5"?2.5:s=="M3"?3:s=="M3.5"?3.5:s=="M4"?4:s=="M5"?5:s=="M6"?6:s=="M7"?7:s=="M8"?8:s=="M9"?9:10;
+<div class="layout">
+  <!-- SELECTION PANEL -->
+  <section class="card">
+    <div class="controls">
+      <div class="field wide">
+        <label>Fastener Profile (FreeCAD Fasteners)</label>
+        <select id="part">
+          <optgroup label="Screws & Bolts">
+            <option value="socket_cap" selected>Socket Head Cap (ISO 4762 / DIN 912)</option>
+            <option value="hex_bolt">Hexagon Head Bolt (ISO 4017 / DIN 933)</option>
+            <option value="hex_flange_bolt">Hexagon Bolt with Flange (EN 1665)</option>
+            <option value="button_head">Button Head Screw (ISO 7380-1)</option>
+            <option value="button_flange">Button Head with Flange (ISO 7380-2)</option>
+            <option value="countersunk_screw">Countersunk Flat 90° (ISO 10642)</option>
+            <option value="pan_head">Pan Head Machine Screw (ISO 7045)</option>
+            <option value="shoulder_screw">Socket Shoulder Screw (ISO 7379)</option>
+            <option value="thumb_screw">Knurled Thumb Screw with Collar (DIN 464)</option>
+            <option value="flat_thumb_screw">Flat Knurled Thumb Screw (DIN 653)</option>
+            <option value="wing_screw">Wing Screw (DIN 316)</option>
+          </optgroup>
+          <optgroup label="Set Screws (Grub Screws)">
+            <option value="set_screw_flat">Grub Screw, Flat Point (ISO 4026 / DIN 913)</option>
+            <option value="set_screw_cone">Grub Screw, Cone Point (ISO 4027 / DIN 914)</option>
+          </optgroup>
+          <optgroup label="Wood & Tapping Screws">
+            <option value="wood_hex_screw">Hexagon Wood Screw (DIN 571)</option>
+            <option value="tapping_screw">Pan Head Tapping Screw (DIN 7981)</option>
+            <option value="csk_tapping_screw">Countersunk Tapping Screw (DIN 7982)</option>
+          </optgroup>
+          <optgroup label="Nuts">
+            <option value="hex_nut">Standard Hexagon Nut (ISO 4032 / DIN 934)</option>
+            <option value="jam_nut">Thin Jam Nut (ISO 4035 / DIN 439)</option>
+            <option value="flange_nut">Flange Nut (ISO 4161 / DIN 6923)</option>
+            <option value="nyloc_nut">Lock / Nyloc Nut (ISO 7040 / DIN 985)</option>
+            <option value="acorn_nut">Acorn / Dome Cap Nut (DIN 1587)</option>
+            <option value="wing_nut">Wing Nut (DIN 315)</option>
+            <option value="thumb_nut">Knurled Thumb Nut with Collar (DIN 466)</option>
+            <option value="flat_thumb_nut">Flat Knurled Thumb Nut (DIN 467)</option>
+            <option value="square_nut">Square Nut (DIN 557 / DIN 562)</option>
+          </optgroup>
+          <optgroup label="Washers">
+            <option value="flat_washer">Flat Washer (ISO 7089 / DIN 125)</option>
+            <option value="fender_washer">Fender Penny Washer (ISO 7093 / DIN 9021)</option>
+            <option value="spring_washer">Split Spring Lock Washer (DIN 127)</option>
+          </optgroup>
+          <optgroup label="Rods & Extrusions">
+            <option value="threaded_rod">Threaded Rod / Stud (DIN 975)</option>
+            <option value="tslot_nut">T-Slot Nut (2020 &amp; 3030 Extrusions)</option>
+          </optgroup>
+          <optgroup label="Inserts & Anchors">
+            <option value="heat_set_insert">Printed Knurled Insert Prototype</option>
+            <option value="wall_plug">Split Expansion Wall Plug</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Metric Coarse Size</label>
+        <select id="size"></select>
+      </div>
+
+      <div class="field wide" id="lengthBox">
+        <label>Shaft / Thread Length <output id="lengthOut"></output></label>
+        <input id="bolt_length" type="range" min="3" max="60" value="16">
+      </div>
+
+      <div class="field" id="driveTypeBox">
+        <label>Drive Recess</label>
+        <select id="drive_type">
+          <option value="hex_drive" selected>Hex Socket (Allen key)</option>
+          <option value="torx">Hexalobular (Torx - ISO 14579)</option>
+          <option value="phillips">Phillips Cross Recess</option>
+          <option value="slotted">Slotted</option>
+          <option value="none">None (solid head)</option>
+        </select>
+      </div>
+
+      <div class="field" id="tslotSeriesBox">
+        <label>Extrusion Profile</label>
+        <select id="tslot_series">
+          <option value="20" selected>2020 Series (6mm slot)</option>
+          <option value="30">3030 Series (8mm slot)</option>
+        </select>
+      </div>
+
+      <div class="field" id="headDiaBox">
+        <label>Head / Feature Width (mm)</label>
+        <input id="head_diameter" type="number" min="2" max="25" step=".1" value="5.5">
+      </div>
+      <div class="field" id="headHeightBox">
+        <label>Head Height (mm)</label>
+        <input id="head_height" type="number" min="1" max="15" step=".1" value="3">
+      </div>
+
+      <div class="field" id="driveSizeBox">
+        <label>Drive Size / AF (mm)</label>
+        <input id="drive_size" type="number" min=".5" max="10" step=".1" value="2.5">
+      </div>
+      <div class="field" id="driveWidthBox">
+        <label>Drive / Slot Width (mm)</label>
+        <input id="drive_width" type="number" min=".2" max="3" step=".1" value=".7">
+      </div>
+      <div class="field wide" id="driveDepthBox">
+        <label>Drive Recess Depth (mm)</label>
+        <input id="drive_depth" type="number" min=".3" max="8" step=".1" value="1.2">
+      </div>
+
+      <div class="field" id="nutAfBox">
+        <label>Nut Across Flats (mm)</label>
+        <input id="nut_across_flats" type="number" min="2" max="24" step=".1" value="5.5">
+      </div>
+      <div class="field" id="nutHeightBox">
+        <label>Nut Height (mm)</label>
+        <input id="nut_height" type="number" min=".8" max="15" step=".1" value="2.4">
+      </div>
+
+      <div class="field wide" id="tapBox">
+        <label>Tapping Pitch (mm)</label>
+        <input id="tapping_pitch" type="number" min=".3" max="4" step=".1" value="1">
+      </div>
+
+      <div class="field" id="insertDiaBox">
+        <label>Insert OD (mm)</label>
+        <input id="insert_diameter" type="number" min="2" max="24" step=".1" value="4.6">
+      </div>
+      <div class="field" id="insertLengthBox">
+        <label>Insert Length (mm)</label>
+        <input id="insert_length" type="number" min="1" max="25" step=".1" value="4.5">
+      </div>
+      <div class="field" id="insertFlangeBox">
+        <label>Flange Diameter (0=none)</label>
+        <input id="insert_flange_diameter" type="number" min="0" max="30" step=".1" value="5.2">
+      </div>
+      <div class="field" id="insertFlangeHeightBox">
+        <label>Flange Height (mm)</label>
+        <input id="insert_flange_height" type="number" min="0" max="3" step=".1" value=".5">
+      </div>
+      <div class="field wide" id="insertKnurlsBox">
+        <label>Knurl Count</label>
+        <input id="insert_knurl_count" type="number" min="0" max="32" step="1" value="8">
+      </div>
+
+      <div class="field" id="plugDiaBox">
+        <label>Plug Diameter (mm)</label>
+        <input id="plug_diameter" type="number" min="2" max="30" step=".1" value="7.5">
+      </div>
+      <div class="field" id="plugLengthBox">
+        <label>Plug Length (mm)</label>
+        <input id="plug_length" type="number" min="3" max="80" step="1" value="18">
+      </div>
+      <div class="field" id="plugBoreBox">
+        <label>Inner Bore (mm)</label>
+        <input id="plug_bore_diameter" type="number" min=".5" max="15" step=".1" value="1.7">
+      </div>
+      <div class="field" id="plugSlotBox">
+        <label>Slot Width (mm)</label>
+        <input id="plug_slot_width" type="number" min="0" max="4" step=".1" value=".8">
+      </div>
+
+      <div class="field wide" id="clearanceBox">
+        <label>Thread Fit Clearance (radial, mm)</label>
+        <input id="thread_clearance" type="number" min="0" max=".8" step=".05" value=".2">
+      </div>
+
+      <div class="field">
+        <label>Nuts in Combined Batch</label>
+        <input id="nut_count" type="number" min="0" max="30" value="4">
+      </div>
+      <div class="field">
+        <label>Bolts in Combined Batch</label>
+        <input id="bolt_count" type="number" min="0" max="30" value="4">
+      </div>
+    </div>
+
+    <div class="buttons">
+      <button id="download">Download Selected .scad</button>
+      <button id="stl">Export Selected STL</button>
+    </div>
+    <div class="buttons">
+      <button id="batch">Download Batch .scad</button>
+      <button id="stl_batch">Export Batch STL</button>
+    </div>
+    <div class="buttons">
+      <button id="mate">Download Matching Nut</button>
+    </div>
+
+    <p class="note" id="status"></p>
+    <p class="note">Direct STL export renders watertight binary STL in browser. Works offline &amp; on GitHub Pages.</p>
+  </section>
+
+  <!-- PREVIEW PANEL -->
+  <section class="card preview">
+    <h2>Model Preview <span class="badge" id="badge"></span></h2>
+    <div class="stage">
+      <svg id="drawing" viewBox="0 0 440 330" role="img" aria-label="Fastener model preview"></svg>
+    </div>
+    <div class="specs" id="specs"></div>
+  </section>
+</div>
+
+<p class="note">Printed plastic hardware is for prototype, electronics, and light-duty mounting. Fasteners are pre-oriented cap-down (Z = 0) for support-free FDM 3D printing.</p>
+</main>
+
+<script>
+const sizes = ['M1','M1.2','M1.4','M1.6','M1.8','M2','M2.5','M3','M3.5','M4','M5','M6','M7','M8','M9','M10'];
+const dims = {
+  M1:[1,.25],'M1.2':[1.2,.25],'M1.4':[1.4,.3],'M1.6':[1.6,.35],'M1.8':[1.8,.35],
+  M2:[2,.4],'M2.5':[2.5,.45],M3:[3,.5],'M3.5':[3.5,.6],M4:[4,.7],M5:[5,.8],
+  M6:[6,1],M7:[7,1],M8:[8,1.25],M9:[9,1.25],M10:[10,1.5]
+};
+const $ = id => document.getElementById(id);
+sizes.forEach(s => $('size').add(new Option(s, s)));
+$('size').value = 'M3';
+
+const core = `function nominal_d(s) = s=="M1"?1:s=="M1.2"?1.2:s=="M1.4"?1.4:s=="M1.6"?1.6:s=="M1.8"?1.8:s=="M2"?2:s=="M2.5"?2.5:s=="M3"?3:s=="M3.5"?3.5:s=="M4"?4:s=="M5"?5:s=="M6"?6:s=="M7"?7:s=="M8"?8:s=="M9"?9:10;
 function nominal_pitch(s) = s=="M1"?0.25:s=="M1.2"?0.25:s=="M1.4"?0.3:s=="M1.6"?0.35:s=="M1.8"?0.35:s=="M2"?0.4:s=="M2.5"?0.45:s=="M3"?0.5:s=="M3.5"?0.6:s=="M4"?0.7:s=="M5"?0.8:s=="M6"?1:s=="M7"?1:s=="M8"?1.25:s=="M9"?1.25:1.5;
 function nominal_af(s) = s=="M1"?2:s=="M1.2"?2.5:s=="M1.4"?2.5:s=="M1.6"?3.2:s=="M1.8"?3.5:s=="M2"?4:s=="M2.5"?5:s=="M3"?5.5:s=="M3.5"?6:s=="M4"?7:s=="M5"?8:s=="M6"?10:s=="M7"?11:s=="M8"?13:s=="M9"?14:17;
 
@@ -71,7 +381,7 @@ thread_depth = 0.60*pitch;
 
 module helix_profile(root_r, depth, p, thread_len) {
     crest=0.12*p; base=0.72*p;
-    linear_extrude(height=thread_len+2*p,twist=360*(thread_len+2*p)/p,slices=max(20,ceil((thread_len+2*p)*14/p)),convexity=10)
+    linear_extrude(height=thread_len+2*p,twist=360*(thread_len+2*p)/p,slices=max(16,ceil((thread_len+2*p)*12/p)),convexity=10)
         translate([root_r,0,0]) polygon([[0,-base/2],[depth,-crest/2],[depth,crest/2],[0,base/2]]);
 }
 module external_threaded_shaft(len) {
@@ -86,209 +396,564 @@ module drive_recess(depth) {
     else if(drive_type=="slotted") translate([-drive_size/2,-drive_width/2,0]) cube([drive_size,drive_width,depth+0.05]);
 }
 
-module bolt_head(){
-    drive_cut_depth=min(drive_depth,head_height-0.2);
-    if(head_style=="hex") hex_prism(head_diameter,head_height);
-    else if(head_style=="hex_flange") union(){cylinder(d=head_diameter*1.28,h=max(0.4,head_height*0.22));translate([0,0,head_height*0.22]) hex_prism(head_diameter,head_height*0.78);}
-    else if(head_style=="button") difference(){resize([head_diameter,head_diameter,head_height*1.6]) sphere(d=head_diameter);translate([0,0,-head_height]) cube([head_diameter*2,head_diameter*2,head_height*2],center=true);if(drive_type!="none") translate([0,0,head_height*0.8-drive_cut_depth]) drive_recess(drive_cut_depth);}
-    else if(head_style=="countersunk") difference(){cylinder(d1=major_d,d2=head_diameter,h=head_height);if(drive_type!="none") translate([0,0,head_height-drive_cut_depth]) drive_recess(drive_cut_depth);}
-    else if(head_style=="thumb") difference(){union(){cylinder(d=head_diameter*1.6,h=head_height);for(i=[0:23]) rotate([0,0,i*15]) translate([head_diameter*0.8,-0.3,0]) cube([0.4,0.6,head_height]);}if(drive_type!="none") translate([0,0,head_height-drive_cut_depth]) drive_recess(drive_cut_depth);}
-    else difference(){
-        cylinder(d=head_diameter,h=head_height);
-        if(drive_type!="none") translate([0,0,head_height-drive_cut_depth]) drive_recess(drive_cut_depth);
-    }
-}
-
-module bolt_model(){translate([0,0,bolt_length+head_height]) rotate([180,0,0]) union(){external_threaded_shaft(bolt_length);translate([0,0,bolt_length]) bolt_head();}}
-
-module nut_model(){
-    flange_dia=nut_across_flats*1.32;
-    flange_h=max(0.5,nut_height*0.24);
-    difference(){
-        union(){
-            if(nut_style=="flange") {cylinder(d=flange_dia,h=flange_h);translate([0,0,flange_h]) hex_prism(nut_across_flats,nut_height-flange_h);}
-            else if(nut_style=="nyloc") {hex_prism(nut_across_flats,nut_height);translate([0,0,nut_height]) cylinder(d=nut_across_flats*0.9,h=nut_height*0.35);}
-            else if(nut_style=="acorn") {hex_prism(nut_across_flats,nut_height);translate([0,0,nut_height]) intersection(){sphere(d=nut_across_flats*0.95);cylinder(d=nut_across_flats*0.95,h=nut_across_flats*0.5);}}
-            else if(nut_style=="wing") {hex_prism(nut_across_flats,nut_height);for(i=[-1,1]) translate([i*nut_across_flats*0.7,0,nut_height*0.5]) cube([nut_across_flats*0.4,nut_across_flats*0.2,nut_height*1.4],center=true);}
-            else hex_prism(nut_across_flats,nut_height);
-        }
-        union(){
-            translate([0,0,-0.1]) cylinder(d=minor_d+2*thread_clearance,h=nut_height*1.8+0.2);
-            translate([0,0,-pitch]) helix_profile((minor_d+2*thread_clearance)/2-0.02,thread_depth,pitch,nut_height+0.5);
-            translate([0,0,-0.01]) cylinder(d1=major_d+2*thread_clearance,d2=minor_d+2*thread_clearance,h=min(0.45,nut_height/4)+0.02);
-            translate([0,0,nut_height-min(0.45,nut_height/4)]) cylinder(d1=minor_d+2*thread_clearance,d2=major_d+2*thread_clearance,h=min(0.45,nut_height/4)+0.02);
-        }
-    }
-}
-
-module washer_model(){
-    inner_d = major_d + 0.35;
-    outer_d = washer_style=="fender" ? max(major_d*3.2, major_d+6) : max(major_d*2.2, major_d+3.5);
-    thickness = washer_style=="fender" ? max(0.8, major_d*0.25) : max(0.5, major_d*0.18);
-    difference(){
-        cylinder(d=outer_d, h=thickness);
-        translate([0,0,-0.1]) cylinder(d=inner_d, h=thickness+0.2);
-    }
-}
-
-module threaded_rod_model(){
-    external_threaded_shaft(bolt_length);
-}
-
-module set_screw_model(){
-    cut_depth = min(drive_depth, bolt_length*0.4);
-    difference(){
+// Screws & Bolts
+module socket_cap_model() {
+    h = head_height; cut = min(drive_depth, h - 0.2);
+    translate([0,0,bolt_length+h]) rotate([180,0,0]) union() {
         external_threaded_shaft(bolt_length);
-        translate([0,0,bolt_length-cut_depth]) cylinder(r=drive_size/sqrt(3),h=cut_depth+0.1,$fn=6);
-    }
-}
-
-module tslot_nut_model(){
-    slot_w = tslot_series==30 ? 8 : 6;
-    nut_w = tslot_series==30 ? 14 : 10;
-    nut_l = tslot_series==30 ? 16 : 11.5;
-    nut_h = tslot_series==30 ? 5 : 4;
-    neck_h = tslot_series==30 ? 2 : 1.5;
-    difference(){
-        union(){
-            cube([nut_l,nut_w,nut_h-neck_h],center=true);
-            translate([0,0,(nut_h-neck_h)/2]) cube([nut_l*0.65,slot_w-0.4,neck_h],center=true);
+        translate([0,0,bolt_length]) difference() {
+            cylinder(d=head_diameter, h=h);
+            translate([0,0,h-cut]) drive_recess(cut);
         }
-        cylinder(d=minor_d+2*thread_clearance,h=nut_h*2,center=true);
+    }
+}
+module hex_bolt_model() {
+    h = head_height;
+    translate([0,0,bolt_length+h]) rotate([180,0,0]) union() {
+        external_threaded_shaft(bolt_length);
+        translate([0,0,bolt_length]) hex_prism(head_diameter, h);
+    }
+}
+module hex_flange_bolt_model() {
+    h = head_height; fl_d = head_diameter * 1.32; fl_h = max(0.5, h * 0.25);
+    translate([0,0,bolt_length+h]) rotate([180,0,0]) union() {
+        external_threaded_shaft(bolt_length);
+        translate([0,0,bolt_length]) union() {
+            cylinder(d=fl_d, h=fl_h);
+            translate([0,0,fl_h]) hex_prism(head_diameter, h - fl_h);
+        }
+    }
+}
+module button_head_model() {
+    h = head_height; cut = min(drive_depth, h - 0.2);
+    translate([0,0,bolt_length+h]) rotate([180,0,0]) union() {
+        external_threaded_shaft(bolt_length);
+        translate([0,0,bolt_length]) difference() {
+            resize([head_diameter, head_diameter, h*1.8]) sphere(d=head_diameter);
+            translate([0,0,-h]) cube([head_diameter*2, head_diameter*2, h*2], center=true);
+            translate([0,0,h*0.8-cut]) drive_recess(cut);
+        }
+    }
+}
+module button_flange_model() {
+    h = head_height; fl_d = head_diameter * 1.35; fl_h = max(0.4, h * 0.22); cut = min(drive_depth, h - 0.2);
+    translate([0,0,bolt_length+h]) rotate([180,0,0]) union() {
+        external_threaded_shaft(bolt_length);
+        translate([0,0,bolt_length]) union() {
+            cylinder(d=fl_d, h=fl_h);
+            translate([0,0,fl_h]) difference() {
+                resize([head_diameter, head_diameter, (h-fl_h)*1.8]) sphere(d=head_diameter);
+                translate([0,0,-(h-fl_h)]) cube([head_diameter*2, head_diameter*2, (h-fl_h)*2], center=true);
+                translate([0,0,(h-fl_h)*0.8-cut]) drive_recess(cut);
+            }
+        }
+    }
+}
+module countersunk_screw_model() {
+    h = head_height; cut = min(drive_depth, h - 0.2);
+    translate([0,0,bolt_length+h]) rotate([180,0,0]) union() {
+        external_threaded_shaft(bolt_length);
+        translate([0,0,bolt_length]) difference() {
+            cylinder(d1=major_d, d2=head_diameter, h=h);
+            translate([0,0,h-cut]) drive_recess(cut);
+        }
+    }
+}
+module pan_head_model() {
+    h = head_height; cut = min(drive_depth, h - 0.2);
+    translate([0,0,bolt_length+h]) rotate([180,0,0]) union() {
+        external_threaded_shaft(bolt_length);
+        translate([0,0,bolt_length]) difference() {
+            cylinder(d1=head_diameter*0.95, d2=head_diameter, h=h);
+            translate([0,0,h-cut]) drive_recess(cut);
+        }
+    }
+}
+module shoulder_screw_model() {
+    sh_d = major_d + 1.5; sh_len = max(4, bolt_length * 0.5); th_len = bolt_length; h = head_height; cut = min(drive_depth, h - 0.2);
+    translate([0,0,sh_len+th_len+h]) rotate([180,0,0]) union() {
+        external_threaded_shaft(th_len);
+        translate([0,0,th_len]) cylinder(d=sh_d, h=sh_len);
+        translate([0,0,th_len+sh_len]) difference() {
+            cylinder(d=sh_d * 1.4, h=h);
+            translate([0,0,h-cut]) drive_recess(cut);
+        }
+    }
+}
+module thumb_screw_model() {
+    wheel_d = max(major_d * 3.6, head_diameter * 1.8);
+    wheel_h = max(2.5, major_d * 0.85);
+    collar_d = max(major_d * 1.8, head_diameter);
+    collar_h = max(1.5, major_d * 0.55);
+    total_h = wheel_h + collar_h;
+    n_teeth = max(16, round(wheel_d * 2.2));
+    translate([0,0,bolt_length+total_h]) rotate([180,0,0]) union() {
+        external_threaded_shaft(bolt_length);
+        translate([0,0,bolt_length]) union() {
+            cylinder(d=collar_d, h=collar_h);
+            translate([0,0,collar_h]) union() {
+                cylinder(d=wheel_d, h=wheel_h);
+                for(i=[0:n_teeth-1]) rotate([0,0,i*360/n_teeth]) translate([wheel_d/2 - 0.15, -0.25, 0]) cube([0.35, 0.5, wheel_h]);
+            }
+        }
+    }
+}
+module flat_thumb_screw_model() {
+    wheel_d = max(major_d * 3.2, head_diameter * 1.6);
+    wheel_h = max(1.8, major_d * 0.6);
+    n_teeth = max(16, round(wheel_d * 2.2));
+    translate([0,0,bolt_length+wheel_h]) rotate([180,0,0]) union() {
+        external_threaded_shaft(bolt_length);
+        translate([0,0,bolt_length]) union() {
+            cylinder(d=wheel_d, h=wheel_h);
+            for(i=[0:n_teeth-1]) rotate([0,0,i*360/n_teeth]) translate([wheel_d/2 - 0.15, -0.25, 0]) cube([0.35, 0.5, wheel_h]);
+        }
+    }
+}
+module wing_screw_model() {
+    base_d = max(major_d * 2.0, head_diameter);
+    base_h = max(2.0, major_d * 0.7);
+    wing_h = max(6.0, major_d * 2.5);
+    translate([0,0,bolt_length+base_h]) rotate([180,0,0]) union() {
+        external_threaded_shaft(bolt_length);
+        translate([0,0,bolt_length]) union() {
+            cylinder(d=base_d, h=base_h);
+            for(i=[-1,1]) translate([i * base_d * 0.65, 0, wing_h/2]) cube([base_d * 0.45, base_d * 0.25, wing_h], center=true);
+        }
     }
 }
 
-module self_tapping_shaft(){root=max(0.25,major_d-0.95*tapping_pitch); tip=min(bolt_length*0.32,2.2*tapping_pitch); threaded=max(0.5,bolt_length-tip);
-    intersection(){union(){translate([0,0,tip]) cylinder(d=root,h=threaded);cylinder(d1=0.35,d2=root,h=tip);translate([0,0,tip-tapping_pitch]) helix_profile(root/2-0.025,0.58*tapping_pitch,tapping_pitch,threaded);} union(){translate([0,0,tip]) cylinder(d=major_d,h=threaded);cylinder(d1=0.35,d2=major_d,h=tip+0.01);}}
+// Set Screws
+module set_screw_flat_model() {
+    cut = min(drive_depth, bolt_length * 0.4);
+    difference() {
+        external_threaded_shaft(bolt_length);
+        translate([0,0,bolt_length-cut]) drive_recess(cut);
+    }
 }
-module self_tapping_model(){translate([0,0,bolt_length+head_height]) rotate([180,0,0]) union(){self_tapping_shaft();translate([0,0,bolt_length]) bolt_head();}}
-
-module heat_set_insert_model(){inner_root=minor_d+2*thread_clearance;body_h=max(0.5,insert_length-insert_flange_height);
-    difference(){union(){translate([0,0,insert_flange_height]) cylinder(d=insert_diameter,h=body_h);if(insert_flange_diameter>0) cylinder(d=insert_flange_diameter,h=insert_flange_height);
-        if(insert_knurl_count>0) for(i=[0:insert_knurl_count-1]) rotate([0,0,i*360/insert_knurl_count]) translate([insert_diameter/2-0.10,-0.16,insert_flange_height]) cube([0.30,0.32,body_h]);}
-        translate([0,0,-0.1]) cylinder(d=inner_root,h=insert_length+0.2);
-        translate([0,0,-pitch]) helix_profile(inner_root/2-0.02,thread_depth,pitch,insert_length);
+module set_screw_cone_model() {
+    cut = min(drive_depth, bolt_length * 0.4); tip_h = min(1.5, bolt_length * 0.25);
+    difference() {
+        union() {
+            cylinder(d1=0.4, d2=major_d, h=tip_h);
+            translate([0,0,tip_h]) external_threaded_shaft(bolt_length - tip_h);
+        }
+        translate([0,0,bolt_length-cut]) drive_recess(cut);
     }
 }
 
-module wall_plug_model(){tip=min(plug_length*0.22,plug_diameter*1.4);body=plug_length-tip;slot_start=plug_length*0.30;
-    difference(){union(){cylinder(d=plug_diameter,h=body);translate([0,0,body]) cylinder(d1=plug_diameter,d2=plug_diameter*0.30,h=tip);cylinder(d1=plug_diameter*1.18,d2=plug_diameter,h=min(1.2,plug_length*0.12));
-        for(i=[0:3]) rotate([0,0,i*90]) translate([plug_diameter*0.42,-0.28,slot_start]) cube([plug_diameter*0.18,0.56,body-slot_start]);}
-        translate([0,0,-0.1]) cylinder(d=plug_bore_diameter,h=plug_length+0.2);
-        if(plug_slot_width>0) for(i=[0:1]) rotate([0,0,i*90]) translate([-plug_slot_width/2,-plug_diameter,slot_start]) cube([plug_slot_width,plug_diameter*2,plug_length-slot_start+0.1]);
+// Wood & Tapping
+module tapping_shaft() {
+    root = max(0.25, major_d - 0.95 * tapping_pitch);
+    tip = min(bolt_length * 0.32, 2.2 * tapping_pitch);
+    threaded = max(0.5, bolt_length - tip);
+    intersection() {
+        union() {
+            translate([0,0,tip]) cylinder(d=root, h=threaded);
+            cylinder(d1=0.35, d2=root, h=tip);
+            translate([0,0,tip-tapping_pitch]) helix_profile(root/2-0.025, 0.58*tapping_pitch, tapping_pitch, threaded);
+        }
+        union() {
+            translate([0,0,tip]) cylinder(d=major_d, h=threaded);
+            cylinder(d1=0.35, d2=major_d, h=tip+0.01);
+        }
+    }
+}
+module wood_hex_screw_model() {
+    h = head_height;
+    translate([0,0,bolt_length+h]) rotate([180,0,0]) union() {
+        tapping_shaft();
+        translate([0,0,bolt_length]) hex_prism(head_diameter, h);
+    }
+}
+module tapping_screw_model() {
+    h = head_height; cut = min(drive_depth, h - 0.2);
+    translate([0,0,bolt_length+h]) rotate([180,0,0]) union() {
+        tapping_shaft();
+        translate([0,0,bolt_length]) difference() {
+            cylinder(d1=head_diameter*0.95, d2=head_diameter, h=h);
+            translate([0,0,h-cut]) drive_recess(cut);
+        }
+    }
+}
+module csk_tapping_screw_model() {
+    h = head_height; cut = min(drive_depth, h - 0.2);
+    translate([0,0,bolt_length+h]) rotate([180,0,0]) union() {
+        tapping_shaft();
+        translate([0,0,bolt_length]) difference() {
+            cylinder(d1=major_d, d2=head_diameter, h=h);
+            translate([0,0,h-cut]) drive_recess(cut);
+        }
     }
 }
 
-module batch_model(){bolt_spacing=max(head_diameter,major_d)+5;nut_spacing=nut_across_flats+5;nut_row_y=max(head_diameter,nut_across_flats)+6;if(bolt_count>0) for(i=[0:bolt_count-1]) translate([i*bolt_spacing,0,0]) { if(part=="self_tapping") self_tapping_model(); else bolt_model(); } if(nut_count>0) for(i=[0:nut_count-1]) translate([i*nut_spacing,nut_row_y,0]) nut_model();}
+// Nuts
+module hex_nut_core(h, extra_body=0) {
+    difference() {
+        children();
+        union() {
+            translate([0,0,-0.1]) cylinder(d=minor_d+2*thread_clearance, h=h+extra_body+0.2);
+            translate([0,0,-pitch]) helix_profile((minor_d+2*thread_clearance)/2-0.02, thread_depth, pitch, h+extra_body+0.5);
+            translate([0,0,-0.01]) cylinder(d1=major_d+2*thread_clearance, d2=minor_d+2*thread_clearance, h=min(0.45,h/4)+0.02);
+            translate([0,0,h+extra_body-min(0.45,h/4)]) cylinder(d1=minor_d+2*thread_clearance, d2=major_d+2*thread_clearance, h=min(0.45,h/4)+0.02);
+        }
+    }
+}
+module hex_nut_model() { hex_nut_core(nut_height) hex_prism(nut_across_flats, nut_height); }
+module jam_nut_model() { jh = max(1.2, nut_height * 0.55); hex_nut_core(jh) hex_prism(nut_across_flats, jh); }
+module flange_nut_model() {
+    fl_d = nut_across_flats * 1.32; fl_h = max(0.5, nut_height * 0.24);
+    hex_nut_core(nut_height) union() {
+        cylinder(d=fl_d, h=fl_h);
+        translate([0,0,fl_h]) hex_prism(nut_across_flats, nut_height - fl_h);
+    }
+}
+module nyloc_nut_model() {
+    col_h = nut_height * 0.35;
+    hex_nut_core(nut_height, col_h) union() {
+        hex_prism(nut_across_flats, nut_height);
+        translate([0,0,nut_height]) cylinder(d=nut_across_flats*0.9, h=col_h);
+    }
+}
+module acorn_nut_model() {
+    dom_h = nut_across_flats * 0.45;
+    difference() {
+        union() {
+            hex_prism(nut_across_flats, nut_height);
+            translate([0,0,nut_height]) intersection() {
+                sphere(d=nut_across_flats*0.95);
+                cylinder(d=nut_across_flats*0.95, h=dom_h);
+            }
+        }
+        union() {
+            translate([0,0,-0.1]) cylinder(d=minor_d+2*thread_clearance, h=nut_height + 0.1);
+            translate([0,0,-pitch]) helix_profile((minor_d+2*thread_clearance)/2-0.02, thread_depth, pitch, nut_height);
+        }
+    }
+}
+module wing_nut_model() {
+    wing_h = max(5.0, nut_across_flats * 1.2);
+    hex_nut_core(nut_height) union() {
+        hex_prism(nut_across_flats, nut_height);
+        for(i=[-1,1]) translate([i*nut_across_flats*0.7, 0, wing_h/2]) cube([nut_across_flats*0.4, nut_across_flats*0.2, wing_h], center=true);
+    }
+}
+module thumb_nut_model() {
+    wheel_d = max(major_d * 3.6, nut_across_flats * 1.5);
+    wheel_h = max(2.5, major_d * 0.85);
+    collar_d = max(major_d * 1.8, nut_across_flats * 0.9);
+    collar_h = max(1.5, major_d * 0.55);
+    tot_h = wheel_h + collar_h;
+    n_teeth = max(16, round(wheel_d * 2.2));
+    hex_nut_core(tot_h) union() {
+        cylinder(d=collar_d, h=collar_h);
+        translate([0,0,collar_h]) union() {
+            cylinder(d=wheel_d, h=wheel_h);
+            for(i=[0:n_teeth-1]) rotate([0,0,i*360/n_teeth]) translate([wheel_d/2 - 0.15, -0.25, 0]) cube([0.35, 0.5, wheel_h]);
+        }
+    }
+}
+module flat_thumb_nut_model() {
+    wheel_d = max(major_d * 3.2, nut_across_flats * 1.4);
+    wheel_h = max(2.0, major_d * 0.65);
+    n_teeth = max(16, round(wheel_d * 2.2));
+    hex_nut_core(wheel_h) union() {
+        cylinder(d=wheel_d, h=wheel_h);
+        for(i=[0:n_teeth-1]) rotate([0,0,i*360/n_teeth]) translate([wheel_d/2 - 0.15, -0.25, 0]) cube([0.35, 0.5, wheel_h]);
+    }
+}
+module square_nut_model() {
+    hex_nut_core(nut_height) cube([nut_across_flats, nut_across_flats, nut_height], center=true);
+}
 
-if(part=="bolt") bolt_model();
-else if(part=="nut") nut_model();
-else if(part=="washer") washer_model();
+// Washers
+module flat_washer_model() {
+    inner_d = major_d + 0.35; outer_d = max(major_d * 2.2, major_d + 3.5); th = max(0.5, major_d * 0.18);
+    difference() { cylinder(d=outer_d, h=th); translate([0,0,-0.1]) cylinder(d=inner_d, h=th+0.2); }
+}
+module fender_washer_model() {
+    inner_d = major_d + 0.35; outer_d = max(major_d * 3.2, major_d + 6.0); th = max(0.8, major_d * 0.25);
+    difference() { cylinder(d=outer_d, h=th); translate([0,0,-0.1]) cylinder(d=inner_d, h=th+0.2); }
+}
+module spring_washer_model() {
+    inner_d = major_d + 0.35; outer_d = max(major_d * 1.8, major_d + 2.5); th = max(0.6, major_d * 0.22);
+    difference() {
+        cylinder(d=outer_d, h=th);
+        translate([0,0,-0.1]) cylinder(d=inner_d, h=th+0.2);
+        translate([0, -0.4, -0.1]) cube([outer_d, 0.8, th+0.2]);
+    }
+}
+
+// Rods & T-Slots
+module threaded_rod_model() { external_threaded_shaft(bolt_length); }
+module tslot_nut_model() {
+    slot_w = tslot_series==30 ? 8 : 6; nut_w = tslot_series==30 ? 14 : 10;
+    nut_l = tslot_series==30 ? 16 : 11.5; nut_h = tslot_series==30 ? 5 : 4; neck_h = tslot_series==30 ? 2 : 1.5;
+    difference() {
+        union() {
+            cube([nut_l, nut_w, nut_h-neck_h], center=true);
+            translate([0,0,(nut_h-neck_h)/2]) cube([nut_l*0.65, slot_w-0.4, neck_h], center=true);
+        }
+        cylinder(d=minor_d+2*thread_clearance, h=nut_h*2, center=true);
+    }
+}
+
+// Inserts & Anchors
+module heat_set_insert_model() {
+    inner_root = minor_d + 2*thread_clearance; body_h = max(0.5, insert_length - insert_flange_height);
+    difference() {
+        union() {
+            translate([0,0,insert_flange_height]) cylinder(d=insert_diameter, h=body_h);
+            if(insert_flange_diameter>0) cylinder(d=insert_flange_diameter, h=insert_flange_height);
+            if(insert_knurl_count>0) for(i=[0:insert_knurl_count-1]) rotate([0,0,i*360/insert_knurl_count]) translate([insert_diameter/2-0.10, -0.16, insert_flange_height]) cube([0.30, 0.32, body_h]);
+        }
+        translate([0,0,-0.1]) cylinder(d=inner_root, h=insert_length+0.2);
+        translate([0,0,-pitch]) helix_profile(inner_root/2-0.02, thread_depth, pitch, insert_length);
+    }
+}
+module wall_plug_model() {
+    tip = min(plug_length*0.22, plug_diameter*1.4); body = plug_length - tip; slot_start = plug_length*0.30;
+    difference() {
+        union() {
+            cylinder(d=plug_diameter, h=body);
+            translate([0,0,body]) cylinder(d1=plug_diameter, d2=plug_diameter*0.30, h=tip);
+            cylinder(d1=plug_diameter*1.18, d2=plug_diameter, h=min(1.2, plug_length*0.12));
+            for(i=[0:3]) rotate([0,0,i*90]) translate([plug_diameter*0.42, -0.28, slot_start]) cube([plug_diameter*0.18, 0.56, body-slot_start]);
+        }
+        translate([0,0,-0.1]) cylinder(d=plug_bore_diameter, h=plug_length+0.2);
+        if(plug_slot_width>0) for(i=[0:1]) rotate([0,0,i*90]) translate([-plug_slot_width/2, -plug_diameter, slot_start]) cube([plug_slot_width, plug_diameter*2, plug_length-slot_start+0.1]);
+    }
+}
+
+module batch_model() {
+    bolt_spacing = max(head_diameter, major_d) + 5; nut_spacing = nut_across_flats + 5; nut_row_y = max(head_diameter, nut_across_flats) + 6;
+    if(bolt_count>0) for(i=[0:bolt_count-1]) translate([i*bolt_spacing, 0, 0]) socket_cap_model();
+    if(nut_count>0) for(i=[0:nut_count-1]) translate([i*nut_spacing, nut_row_y, 0]) hex_nut_model();
+}
+
+if(part=="socket_cap" || part=="bolt") socket_cap_model();
+else if(part=="hex_bolt") hex_bolt_model();
+else if(part=="hex_flange_bolt") hex_flange_bolt_model();
+else if(part=="button_head") button_head_model();
+else if(part=="button_flange") button_flange_model();
+else if(part=="countersunk_screw") countersunk_screw_model();
+else if(part=="pan_head") pan_head_model();
+else if(part=="shoulder_screw") shoulder_screw_model();
+else if(part=="thumb_screw") thumb_screw_model();
+else if(part=="flat_thumb_screw") flat_thumb_screw_model();
+else if(part=="wing_screw") wing_screw_model();
+else if(part=="set_screw_flat" || part=="set_screw") set_screw_flat_model();
+else if(part=="set_screw_cone") set_screw_cone_model();
+else if(part=="wood_hex_screw") wood_hex_screw_model();
+else if(part=="tapping_screw" || part=="self_tapping") tapping_screw_model();
+else if(part=="csk_tapping_screw") csk_tapping_screw_model();
+else if(part=="hex_nut" || part=="nut") hex_nut_model();
+else if(part=="jam_nut") jam_nut_model();
+else if(part=="flange_nut") flange_nut_model();
+else if(part=="nyloc_nut") nyloc_nut_model();
+else if(part=="acorn_nut") acorn_nut_model();
+else if(part=="wing_nut") wing_nut_model();
+else if(part=="thumb_nut") thumb_nut_model();
+else if(part=="flat_thumb_nut") flat_thumb_nut_model();
+else if(part=="square_nut") square_nut_model();
+else if(part=="flat_washer" || part=="washer") flat_washer_model();
+else if(part=="fender_washer") fender_washer_model();
+else if(part=="spring_washer") spring_washer_model();
 else if(part=="threaded_rod") threaded_rod_model();
-else if(part=="set_screw") set_screw_model();
 else if(part=="tslot_nut") tslot_nut_model();
-else if(part=="self_tapping") self_tapping_model();
 else if(part=="heat_set_insert") heat_set_insert_model();
 else if(part=="wall_plug") wall_plug_model();
 else batch_model();`;
 
-const fields=['bolt_length','head_style','drive_type','nut_style','washer_style','tslot_series','head_height','head_diameter','drive_size','drive_width','drive_depth','nut_height','nut_across_flats','thread_clearance','tapping_pitch','insert_diameter','insert_length','insert_flange_diameter','insert_flange_height','insert_knurl_count','plug_diameter','plug_length','plug_bore_diameter','plug_slot_width','bolt_count','nut_count'];
+const fields = [
+  'bolt_length', 'drive_type', 'tslot_series',
+  'head_height', 'head_diameter', 'drive_size', 'drive_width', 'drive_depth',
+  'nut_height', 'nut_across_flats', 'thread_clearance', 'tapping_pitch',
+  'insert_diameter', 'insert_length', 'insert_flange_diameter', 'insert_flange_height', 'insert_knurl_count',
+  'plug_diameter', 'plug_length', 'plug_bore_diameter', 'plug_slot_width',
+  'bolt_count', 'nut_count'
+];
 
-function setDefaults(){
-  let s=$('size').value,[d,p]=dims[s],i=sizes.indexOf(s),af=({M1:2,'M1.2':2.5,'M1.4':2.5,'M1.6':3.2,'M1.8':3.5,M2:4,'M2.5':5,M3:5.5,'M3.5':6,M4:7,M5:8,M6:10,M7:11,M8:13,M9:14,M10:17})[s];
-  $('nut_across_flats').value=af;
-  $('nut_height').value=d<3?Math.max(.8,d*.8):d===3?2.4:d===4?3.2:d===5?4:d*.8;
-  let hx=$('head_style').value==='hex'||$('head_style').value==='hex_flange';
-  $('head_diameter').value=d===3?(hx?5.5:5.5):d===4?(hx?7:7):d===5?(hx?8:8.5):Math.max(d*1.8,d+1);
-  $('head_height').value=d===3?(hx?2:3):d===4?(hx?2.8:4):d===5?(hx?3.5:5):d*.8;
-  $('drive_size').value=d<3?Math.max(.8,d*.8):d===3?2.5:d===4?3:d===5?4:d*.75;
-  $('tapping_pitch').value=Math.max(.3,Math.round(d*(d<3?.45:.3)*10)/10);
-  $('insert_diameter').value=Math.max(d+1,d*1.5);
-  $('insert_length').value=Math.max(2,d*1.5);
-  $('insert_flange_diameter').value=d*1.75;
-  $('insert_flange_height').value=Math.max(.3,d*.16);
-  $('plug_diameter').value=d*2.5;
-  $('plug_length').value=d*6;
-  $('plug_bore_diameter').value=d*.55;
-}
+function setDefaults() {
+  const s = $('size').value;
+  const [d, p] = dims[s];
+  const af = ({M1:2,'M1.2':2.5,'M1.4':2.5,'M1.6':3.2,'M1.8':3.5,M2:4,'M2.5':5,M3:5.5,'M3.5':6,M4:7,M5:8,M6:10,M7:11,M8:13,M9:14,M10:17})[s];
+  $('nut_across_flats').value = af;
+  $('nut_height').value = d < 3 ? Math.max(.8, Math.round(d*.8*10)/10) : d === 3 ? 2.4 : d === 4 ? 3.2 : d === 5 ? 4 : Math.round(d*.8*10)/10;
 
-function update(){
-  let part=$('part').value,size=$('size').value,[d,p]=dims[size];
-  let hasLength=['bolt','threaded_rod','set_screw','self_tapping'].includes(part);
-  let hasHead=['bolt','self_tapping'].includes(part);
-  let hasDrive=['bolt','set_screw','self_tapping'].includes(part) && $('head_style').value!=='hex';
-  let isNut=part==='nut', isWasher=part==='washer', isTslot=part==='tslot_nut', isInsert=part==='heat_set_insert', isPlug=part==='wall_plug';
+  const part = $('part').value;
+  const isHex = ['hex_bolt', 'hex_flange_bolt', 'wood_hex_screw'].includes(part);
+  const isThumb = ['thumb_screw', 'flat_thumb_screw', 'thumb_nut', 'flat_thumb_nut'].includes(part);
 
-  const show=(id,on)=>$(id)&&$(id).classList.toggle('hidden',!on);
-  show('lengthBox',hasLength);
-  show('headBox',hasHead);
-  show('headDiaBox',hasHead);
-  show('headHeightBox',hasHead);
-  show('driveTypeBox',hasDrive);
-  show('driveSizeBox',hasDrive && $('drive_type').value!=='none');
-  show('driveWidthBox',hasDrive && ['phillips','slotted'].includes($('drive_type').value));
-  show('driveDepthBox',hasDrive && $('drive_type').value!=='none');
-  show('nutStyleBox',isNut);
-  show('nutAfBox',isNut);
-  show('nutHeightBox',isNut);
-  show('washerStyleBox',isWasher);
-  show('tslotSeriesBox',isTslot);
-  show('tapBox',part==='self_tapping');
-  ['insertDiaBox','insertLengthBox','insertFlangeBox','insertFlangeHeightBox','insertKnurlsBox'].forEach(x=>show(x,isInsert));
-  ['plugDiaBox','plugLengthBox','plugBoreBox','plugSlotBox'].forEach(x=>show(x,isPlug));
-  show('clearanceBox',['bolt','nut','tslot_nut','heat_set_insert','set_screw'].includes(part));
-
-  $('badge').textContent=part.toUpperCase().replaceAll('_',' ')+' · '+size;
-  if(part==='nut') $('mate').textContent='Download matching bolt .scad';
-  else if(isWasher) $('mate').textContent='Download matching bolt .scad';
-  else if(isInsert||isPlug||isTslot) $('mate').textContent='Download matching screw .scad';
-  else $('mate').textContent='Download matching nut .scad';
-
-  $('bolt_length').value=Math.max(+$('bolt_length').min,+$('bolt_length').value);
-  $('lengthOut').textContent=$('bolt_length').value+' mm';
-
-  let sh=`<ellipse cx="220" cy="300" rx="120" ry="10" fill="#080c11"/>`;
-  if(part==='nut'){
-    sh+=`<polygon points="125,115 170,78 270,78 315,115 270,150 170,150" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/><path d="M125 115v55l45 35v-55zm190 0v55l-45 35v-55zm-145 35h100v55H170z" fill="#496d6b" stroke="#a4dfd0" stroke-width="2"/><ellipse cx="220" cy="115" rx="43" ry="19" fill="#10151d" stroke="#d0f2e9" stroke-width="3"/>`;
-  } else if(part==='washer'){
-    sh+=`<ellipse cx="220" cy="180" rx="90" ry="40" fill="#496d6b" stroke="#a4dfd0" stroke-width="3"/><ellipse cx="220" cy="175" rx="90" ry="40" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/><ellipse cx="220" cy="175" rx="35" ry="16" fill="#10151d" stroke="#d0f2e9" stroke-width="3"/>`;
-  } else if(part==='threaded_rod'){
-    sh+=`<rect x="200" y="70" width="40" height="210" rx="4" fill="#557f7a" stroke="#b8e8df" stroke-width="2"/>`;
-    for(let i=0;i<10;i++) sh+=`<path d="M200 ${85+i*18}h40" stroke="#b8e8df"/>`;
-  } else if(part==='set_screw'){
-    sh+=`<rect x="200" y="140" width="40" height="140" rx="4" fill="#557f7a" stroke="#b8e8df" stroke-width="2"/><polygon points="220,145 230,150 230,160 220,165 210,160 210,150" fill="#10151d" stroke="#b8e8df"/>`;
-  } else if(part==='tslot_nut'){
-    sh+=`<rect x="150" y="170" width="140" height="40" rx="4" fill="#496d6b" stroke="#a4dfd0" stroke-width="3"/><rect x="180" y="145" width="80" height="25" fill="#83b9ae" stroke="#d0f2e9" stroke-width="2"/><ellipse cx="220" cy="190" rx="18" ry="10" fill="#10151d" stroke="#d0f2e9" stroke-width="2"/>`;
-  } else if(part==='heat_set_insert'){
-    sh+=`<path d="M165 105h110v145H165z" fill="#557f7a" stroke="#b8e8df" stroke-width="3"/><path d="M145 105h150v22H145z" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/><ellipse cx="220" cy="105" rx="55" ry="20" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/><ellipse cx="220" cy="105" rx="23" ry="9" fill="#10151d" stroke="#d0f2e9" stroke-width="2"/>${[0,1,2,3,4].map(i=>`<path d="M${170+i*22} 135v105" stroke="#b8e8df" opacity=".65"/>`).join('')}`;
-  } else if(part==='wall_plug'){
-    sh+=`<path d="M175 100h90v130l-45 55-45-55z" fill="#557f7a" stroke="#b8e8df" stroke-width="3"/><path d="M165 100h110v18H165z" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/><path d="M215 118v142 M225 118v142" stroke="#10151d" stroke-width="5"/>`;
+  if (isThumb) {
+    $('head_diameter').value = Math.round(d * 3.6 * 10) / 10;
+    $('head_height').value = Math.round(Math.max(2.5, d * 1.2) * 10) / 10;
+  } else if (isHex) {
+    $('head_diameter').value = af;
+    $('head_height').value = d === 3 ? 2 : d === 4 ? 2.8 : d === 5 ? 3.5 : Math.round(d*.7*10)/10;
   } else {
-    sh+=`<path d="M206 170v105l14 18 14-18V170z" fill="#557f7a" stroke="#b8e8df" stroke-width="2"/><path d="M207 190h26m-26 16h26m-26 16h26m-26 16h26m-26 16h26" stroke="#b8e8df"/>`;
-    sh+=`<path d="M165 115v55q0 15 15 15h80q15 0 15-15v-55z" fill="#496d6b" stroke="#a4dfd0" stroke-width="3"/><ellipse cx="220" cy="115" rx="55" ry="17" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/>`;
-    if($('head_style').value==='socket') sh+=`<polygon points="220,105 235,110 235,120 220,125 205,120 205,110" fill="#10151d" stroke="#b8e8df"/>`;
+    $('head_diameter').value = d === 3 ? 5.5 : d === 4 ? 7 : d === 5 ? 8.5 : Math.round(Math.max(d*1.8, d+1)*10)/10;
+    $('head_height').value = d === 3 ? 3 : d === 4 ? 4 : d === 5 ? 5 : Math.round(d*.9*10)/10;
   }
-  $('drawing').innerHTML=sh+`<text x="220" y="320" fill="#9eafc1" text-anchor="middle" font-size="12">FreeCAD Fasteners Preview · ${size} · pitch ${p} mm</text>`;
-  $('specs').innerHTML=`<span>Major diameter <b>${d} mm</b></span><span>ISO coarse pitch <b>${p} mm</b></span><span>${isNut?'ISO 4032 / DIN 934 Nut':isWasher?'ISO 7089 / 7093 Washer':isTslot?'2020 / 3030 Extrusion T-Nut':part==='self_tapping'?'DIN 571 Tapping Thread':'Printable Fastener Geometry'}</span>`;
+
+  $('drive_size').value = d < 3 ? Math.max(.8, Math.round(d*.8*10)/10) : d === 3 ? 2.5 : d === 4 ? 3 : d === 5 ? 4 : Math.round(d*.75*10)/10;
+  $('tapping_pitch').value = Math.max(.3, Math.round(d * (d < 3 ? .45 : .3) * 10) / 10);
+  $('insert_diameter').value = Math.round(Math.max(d + 1, d * 1.5) * 10) / 10;
+  $('insert_length').value = Math.round(Math.max(2, d * 1.5) * 10) / 10;
+  $('insert_flange_diameter').value = Math.round(d * 1.75 * 10) / 10;
+  $('insert_flange_height').value = Math.round(Math.max(.3, d * .16) * 10) / 10;
+  $('plug_diameter').value = Math.round(d * 2.5 * 10) / 10;
+  $('plug_length').value = Math.round(d * 6);
+  $('plug_bore_diameter').value = Math.round(d * .55 * 10) / 10;
 }
 
-function source(which=$('part').value){
-  const strFields=['head_style','drive_type','nut_style','washer_style'];
-  let values=fields.map(id=>{
-    const el=$(id);
-    const val=el?el.value:'';
-    if(strFields.includes(id)) return `${id} = "${val}";`;
+function update() {
+  const part = $('part').value;
+  const size = $('size').value;
+  const [d, p] = dims[size];
+
+  const isScrewOrBolt = ['socket_cap', 'hex_bolt', 'hex_flange_bolt', 'button_head', 'button_flange', 'countersunk_screw', 'pan_head', 'shoulder_screw', 'thumb_screw', 'flat_thumb_screw', 'wing_screw'].includes(part);
+  const isSetScrew = ['set_screw_flat', 'set_screw_cone'].includes(part);
+  const isTapping = ['wood_hex_screw', 'tapping_screw', 'csk_tapping_screw'].includes(part);
+  const isNut = ['hex_nut', 'jam_nut', 'flange_nut', 'nyloc_nut', 'acorn_nut', 'wing_nut', 'thumb_nut', 'flat_thumb_nut', 'square_nut'].includes(part);
+  const isWasher = ['flat_washer', 'fender_washer', 'spring_washer'].includes(part);
+  const isTslot = part === 'tslot_nut';
+  const isRod = part === 'threaded_rod';
+  const isInsert = part === 'heat_set_insert';
+  const isPlug = part === 'wall_plug';
+
+  const hasLength = isScrewOrBolt || isSetScrew || isTapping || isRod;
+  const hasHead = isScrewOrBolt || isTapping;
+  const hasDrive = (isScrewOrBolt || isSetScrew || isTapping) && !['hex_bolt', 'hex_flange_bolt', 'wood_hex_screw', 'wing_screw'].includes(part);
+
+  const show = (id, on) => {
+    const el = $(id);
+    if (el) el.classList.toggle('hidden', !on);
+  };
+
+  show('lengthBox', hasLength);
+  show('driveTypeBox', hasDrive);
+  show('headDiaBox', hasHead);
+  show('headHeightBox', hasHead);
+  show('driveSizeBox', hasDrive && $('drive_type').value !== 'none');
+  show('driveWidthBox', hasDrive && ['phillips', 'slotted'].includes($('drive_type').value));
+  show('driveDepthBox', hasDrive && $('drive_type').value !== 'none');
+  show('nutAfBox', isNut);
+  show('nutHeightBox', isNut);
+  show('tslotSeriesBox', isTslot);
+  show('tapBox', isTapping);
+  ['insertDiaBox', 'insertLengthBox', 'insertFlangeBox', 'insertFlangeHeightBox', 'insertKnurlsBox'].forEach(x => show(x, isInsert));
+  ['plugDiaBox', 'plugLengthBox', 'plugBoreBox', 'plugSlotBox'].forEach(x => show(x, isPlug));
+  show('clearanceBox', isScrewOrBolt || isNut || isTslot || isInsert || isSetScrew);
+
+  $('badge').textContent = part.toUpperCase().replaceAll('_', ' ') + ' · ' + size;
+
+  if (isNut) $('mate').textContent = 'Download matching bolt .scad';
+  else if (isWasher) $('mate').textContent = 'Download matching bolt .scad';
+  else if (isInsert || isPlug || isTslot) $('mate').textContent = 'Download matching screw .scad';
+  else $('mate').textContent = 'Download matching nut .scad';
+
+  $('bolt_length').value = Math.max(+$('bolt_length').min, +$('bolt_length').value);
+  $('lengthOut').textContent = $('bolt_length').value + ' mm';
+
+  // SVG Illustrative Previews
+  let sh = `<ellipse cx="220" cy="300" rx="120" ry="10" fill="#080c11"/>`;
+
+  if (['thumb_screw', 'flat_thumb_screw'].includes(part)) {
+    // Distinctive Knurled Thumb Screw Wheel + Collar + Threaded Shank
+    sh += `<rect x="206" y="160" width="28" height="110" fill="#557f7a" stroke="#b8e8df" stroke-width="2"/>`;
+    for(let i=0;i<6;i++) sh += `<path d="M206 ${175+i*16}h28" stroke="#b8e8df"/>`;
+    if (part === 'thumb_screw') sh += `<rect x="185" y="138" width="70" height="22" rx="3" fill="#496d6b" stroke="#a4dfd0" stroke-width="2"/>`;
+    sh += `<rect x="135" y="105" width="170" height="34" rx="6" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/>`;
+    for(let i=0;i<10;i++) sh += `<line x1="${145+i*16}" y1="107" x2="${145+i*16}" y2="137" stroke="#375553" stroke-width="3"/>`;
+  } else if (['thumb_nut', 'flat_thumb_nut'].includes(part)) {
+    // Knurled Thumb Nut
+    if (part === 'thumb_nut') sh += `<rect x="185" y="150" width="70" height="25" rx="3" fill="#496d6b" stroke="#a4dfd0" stroke-width="2"/>`;
+    sh += `<rect x="135" y="115" width="170" height="36" rx="6" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/>`;
+    for(let i=0;i<10;i++) sh += `<line x1="${145+i*16}" y1="117" x2="${145+i*16}" y2="149" stroke="#375553" stroke-width="3"/>`;
+    sh += `<ellipse cx="220" cy="115" rx="28" ry="10" fill="#10151d" stroke="#d0f2e9" stroke-width="2"/>`;
+  } else if (['wing_screw', 'wing_nut'].includes(part)) {
+    // Wing fastener
+    if (part === 'wing_screw') {
+      sh += `<rect x="206" y="160" width="28" height="110" fill="#557f7a" stroke="#b8e8df" stroke-width="2"/>`;
+      for(let i=0;i<6;i++) sh += `<path d="M206 ${175+i*16}h28" stroke="#b8e8df"/>`;
+    }
+    sh += `<ellipse cx="220" cy="155" rx="38" ry="16" fill="#496d6b" stroke="#a4dfd0" stroke-width="3"/>`;
+    sh += `<path d="M185 155q-45 -30 -35 -65q15 -10 35 25z" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/>`;
+    sh += `<path d="M255 155q45 -30 35 -65q-15 -10 -35 25z" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/>`;
+    if (part === 'wing_nut') sh += `<ellipse cx="220" cy="155" rx="20" ry="8" fill="#10151d" stroke="#d0f2e9" stroke-width="2"/>`;
+  } else if (isNut) {
+    sh += `<polygon points="125,115 170,78 270,78 315,115 270,150 170,150" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/>`;
+    sh += `<path d="M125 115v55l45 35v-55zm190 0v55l-45 35v-55zm-145 35h100v55H170z" fill="#496d6b" stroke="#a4dfd0" stroke-width="2"/>`;
+    if (part === 'acorn_nut') sh += `<path d="M175 78q45 -45 90 0z" fill="#a4dfd0" stroke="#d0f2e9" stroke-width="2"/>`;
+    sh += `<ellipse cx="220" cy="115" rx="43" ry="19" fill="#10151d" stroke="#d0f2e9" stroke-width="3"/>`;
+  } else if (isWasher) {
+    sh += `<ellipse cx="220" cy="180" rx="95" ry="42" fill="#496d6b" stroke="#a4dfd0" stroke-width="3"/>`;
+    sh += `<ellipse cx="220" cy="172" rx="95" ry="42" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/>`;
+    sh += `<ellipse cx="220" cy="172" rx="36" ry="16" fill="#10151d" stroke="#d0f2e9" stroke-width="3"/>`;
+    if (part === 'spring_washer') sh += `<line x1="220" y1="172" x2="315" y2="172" stroke="#10151d" stroke-width="6"/>`;
+  } else if (isTslot) {
+    sh += `<rect x="150" y="165" width="140" height="45" rx="4" fill="#496d6b" stroke="#a4dfd0" stroke-width="3"/>`;
+    sh += `<rect x="180" y="135" width="80" height="30" fill="#83b9ae" stroke="#d0f2e9" stroke-width="2"/>`;
+    sh += `<ellipse cx="220" cy="185" rx="20" ry="11" fill="#10151d" stroke="#d0f2e9" stroke-width="2"/>`;
+  } else if (isRod) {
+    sh += `<rect x="200" y="70" width="40" height="210" rx="4" fill="#557f7a" stroke="#b8e8df" stroke-width="2"/>`;
+    for(let i=0;i<12;i++) sh += `<path d="M200 ${85+i*16}h40" stroke="#b8e8df"/>`;
+  } else if (isSetScrew) {
+    sh += `<rect x="200" y="130" width="40" height="150" rx="3" fill="#557f7a" stroke="#b8e8df" stroke-width="2"/>`;
+    for(let i=0;i<8;i++) sh += `<path d="M200 ${145+i*16}h40" stroke="#b8e8df"/>`;
+    if (part === 'set_screw_cone') sh += `<polygon points="200,280 220,300 240,280" fill="#557f7a" stroke="#b8e8df" stroke-width="2"/>`;
+    sh += `<polygon points="220,135 230,140 230,150 220,155 210,150 210,140" fill="#10151d" stroke="#b8e8df"/>`;
+  } else if (isInsert) {
+    sh += `<path d="M165 105h110v145H165z" fill="#557f7a" stroke="#b8e8df" stroke-width="3"/><path d="M145 105h150v22H145z" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/><ellipse cx="220" cy="105" rx="55" ry="20" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/><ellipse cx="220" cy="105" rx="23" ry="9" fill="#10151d" stroke="#d0f2e9" stroke-width="2"/>`;
+  } else if (isPlug) {
+    sh += `<path d="M175 100h90v130l-45 55-45-55z" fill="#557f7a" stroke="#b8e8df" stroke-width="3"/><path d="M165 100h110v18H165z" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/><path d="M215 118v142 M225 118v142" stroke="#10151d" stroke-width="5"/>`;
+  } else {
+    // Standard Screws / Bolts
+    const isPointed = isTapping;
+    if (isPointed) {
+      sh += `<path d="M206 170v85l14 25 14-25V170z" fill="#557f7a" stroke="#b8e8df" stroke-width="2"/>`;
+    } else {
+      sh += `<rect x="206" y="170" width="28" height="110" rx="2" fill="#557f7a" stroke="#b8e8df" stroke-width="2"/>`;
+    }
+    for(let i=0;i<6;i++) sh += `<path d="M206 ${185+i*16}h28" stroke="#b8e8df"/>`;
+
+    if (part === 'countersunk_screw' || part === 'csk_tapping_screw') {
+      sh += `<polygon points="170,115 270,115 234,170 206,170" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/>`;
+    } else if (part === 'hex_bolt' || part === 'wood_hex_screw') {
+      sh += `<polygon points="170,115 200,95 240,95 270,115 250,170 190,170" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/>`;
+    } else {
+      sh += `<rect x="175" y="115" width="90" height="55" rx="5" fill="#496d6b" stroke="#a4dfd0" stroke-width="3"/>`;
+      sh += `<ellipse cx="220" cy="115" rx="45" ry="16" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/>`;
+      sh += `<polygon points="220,108 232,112 232,120 220,124 208,120 208,112" fill="#10151d" stroke="#b8e8df"/>`;
+    }
+  }
+
+  $('drawing').innerHTML = sh + `<text x="220" y="320" fill="#9eafc1" text-anchor="middle" font-size="12">FreeCAD Fasteners · ${part} · ${size} · pitch ${p} mm</text>`;
+  $('specs').innerHTML = `<span>Major diameter <b>${d} mm</b></span><span>ISO coarse pitch <b>${p} mm</b></span><span>Standard: <b>${part.toUpperCase().replaceAll('_', ' ')}</b></span>`;
+}
+
+function source(which = $('part').value) {
+  const strFields = ['drive_type'];
+  const values = fields.map(id => {
+    const el = $(id);
+    const val = el ? el.value : '';
+    if (strFields.includes(id)) return `${id} = "${val}";`;
     return `${id} = ${val};`;
   }).join('\n');
-  return `// Generated by Metric Fastener Workbench (FreeCAD Fasteners compatible)\npart = "${which}";\nsize = "${$('size').value}";\n${values}\n$fn = 72;\n\n${core}`;
+  return `// Generated by Metric Fastener Workbench (FreeCAD Fasteners taxonomy)\npart = "${which}";\nsize = "${$('size').value}";\n${values}\n$fn = 72;\n\n${core}`;
 }
 
-function save(which){
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([source(which)],{type:'text/plain'}));
-  a.download=`${$('size').value}_${which}.scad`;
+function save(which) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([source(which)], { type: 'text/plain' }));
+  a.download = `${$('size').value}_${which}.scad`;
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(a.href);
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+  }, 100);
 }
 
 function getParams(part = $('part').value) {
@@ -297,10 +962,7 @@ function getParams(part = $('part').value) {
   return {
     part, size, major_d: d, pitch: p,
     bolt_length: +$('bolt_length').value,
-    head_style: $('head_style').value,
     drive_type: $('drive_type') ? $('drive_type').value : 'hex_drive',
-    nut_style: $('nut_style') ? $('nut_style').value : 'standard',
-    washer_style: $('washer_style') ? $('washer_style').value : 'standard',
     tslot_series: $('tslot_series') ? +$('tslot_series').value : 20,
     head_height: +$('head_height').value,
     head_diameter: +$('head_diameter').value,
@@ -334,8 +996,8 @@ function createFastenerTriangles(params) {
   }
 
   const {
-    part='bolt', size='M3', major_d=3, pitch=0.5, bolt_length=16,
-    head_style='socket', drive_type='hex_drive', nut_style='standard', washer_style='standard', tslot_series=20,
+    part='socket_cap', size='M3', major_d=3, pitch=0.5, bolt_length=16,
+    drive_type='hex_drive', tslot_series=20,
     head_diameter=5.5, head_height=3, drive_size=2.5, drive_width=0.7, drive_depth=1.2,
     nut_across_flats=5.5, nut_height=2.4, thread_clearance=0.2, tapping_pitch=1.0,
     insert_diameter=4.6, insert_length=4.5, insert_flange_diameter=5.2, insert_flange_height=0.5,
@@ -360,9 +1022,9 @@ function createFastenerTriangles(params) {
     }
   }
 
-  function buildHead(z0, z1) {
-    const h = z1 - z0, cut_depth = Math.min(drive_depth, h - 0.2);
-    if (head_style === 'hex') {
+  function buildHead(z0, z1, style) {
+    const h = z1 - z0, cut = Math.min(drive_depth, h - 0.2);
+    if (['hex_bolt', 'wood_hex_screw'].includes(style)) {
       const R = head_diameter / Math.sqrt(3), N = 6;
       for (let i = 0; i < N; i++) {
         const a1 = (i / N) * Math.PI * 2, a2 = ((i + 1) / N) * Math.PI * 2;
@@ -370,9 +1032,8 @@ function createFastenerTriangles(params) {
         addQuad(x1, y1, z0, x2, y2, z0, x2, y2, z1, x1, y1, z1);
         addTri(0, 0, z0, x2, y2, z0, x1, y1, z0);
       }
-    } else if (head_style === 'hex_flange') {
-      const R_hex = head_diameter / Math.sqrt(3), R_fl = (head_diameter * 1.3) / 2, h_fl = Math.max(0.5, h * 0.25);
-      const N = 36;
+    } else if (style === 'hex_flange_bolt') {
+      const R_hex = head_diameter / Math.sqrt(3), R_fl = (head_diameter * 1.32) / 2, h_fl = Math.max(0.5, h * 0.25), N = 36;
       for (let i = 0; i < N; i++) {
         const a1 = (i / N) * Math.PI * 2, a2 = ((i + 1) / N) * Math.PI * 2;
         addQuad(R_fl*Math.cos(a1), R_fl*Math.sin(a1), z0, R_fl*Math.cos(a2), R_fl*Math.sin(a2), z0, R_fl*Math.cos(a2), R_fl*Math.sin(a2), z0+h_fl, R_fl*Math.cos(a1), R_fl*Math.sin(a1), z0+h_fl);
@@ -382,17 +1043,32 @@ function createFastenerTriangles(params) {
         const a1 = (i / 6) * Math.PI * 2, a2 = ((i + 1) / 6) * Math.PI * 2;
         addQuad(R_hex*Math.cos(a1), R_hex*Math.sin(a1), z0+h_fl, R_hex*Math.cos(a2), R_hex*Math.sin(a2), z0+h_fl, R_hex*Math.cos(a2), R_hex*Math.sin(a2), z1, R_hex*Math.cos(a1), R_hex*Math.sin(a1), z1);
       }
-    } else if (head_style === 'countersunk') {
+    } else if (['countersunk_screw', 'csk_tapping_screw'].includes(style)) {
       const R_top = head_diameter / 2, R_bot = major_d / 2, N = 36;
       for (let i = 0; i < N; i++) {
         const a1 = (i / N) * Math.PI * 2, a2 = ((i + 1) / N) * Math.PI * 2;
         addQuad(R_top*Math.cos(a1), R_top*Math.sin(a1), z0, R_top*Math.cos(a2), R_top*Math.sin(a2), z0, R_bot*Math.cos(a2), R_bot*Math.sin(a2), z1, R_bot*Math.cos(a1), R_bot*Math.sin(a1), z1);
         addTri(0, 0, z0, R_top*Math.cos(a2), R_top*Math.sin(a2), z0, R_top*Math.cos(a1), R_top*Math.sin(a1), z0);
       }
-      if (drive_type !== 'none') buildDriveRecess(z0, cut_depth);
+      if (drive_type !== 'none') buildDriveRecess(z0, cut);
+    } else if (['thumb_screw', 'flat_thumb_screw'].includes(style)) {
+      // High-precision knurled wheel
+      const R_wheel = (style === 'thumb_screw' ? Math.max(major_d * 3.6, head_diameter * 1.8) : Math.max(major_d * 3.2, head_diameter * 1.6)) / 2;
+      const h_wheel = style === 'thumb_screw' ? Math.max(2.5, major_d * 0.85) : Math.max(1.8, major_d * 0.6);
+      const R_col = Math.max(major_d * 1.8, head_diameter) / 2;
+      const h_col = style === 'thumb_screw' ? Math.max(1.5, major_d * 0.55) : 0;
+      const N = 36;
+      for (let i = 0; i < N; i++) {
+        const a1 = (i / N) * Math.PI * 2, a2 = ((i + 1) / N) * Math.PI * 2;
+        addQuad(R_wheel*Math.cos(a1), R_wheel*Math.sin(a1), z0, R_wheel*Math.cos(a2), R_wheel*Math.sin(a2), z0, R_wheel*Math.cos(a2), R_wheel*Math.sin(a2), z0+h_wheel, R_wheel*Math.cos(a1), R_wheel*Math.sin(a1), z0+h_wheel);
+        addTri(0, 0, z0, R_wheel*Math.cos(a2), R_wheel*Math.sin(a2), z0, R_wheel*Math.cos(a1), R_wheel*Math.sin(a1), z0);
+        if (h_col > 0) {
+          addQuad(R_col*Math.cos(a1), R_col*Math.sin(a1), z0+h_wheel, R_col*Math.cos(a2), R_col*Math.sin(a2), z0+h_wheel, R_col*Math.cos(a2), R_col*Math.sin(a2), z1, R_col*Math.cos(a1), R_col*Math.sin(a1), z1);
+        }
+      }
     } else {
-      const R = head_style === 'thumb' ? (head_diameter * 1.5) / 2 : head_diameter / 2;
-      const N = 36, r_rec = drive_size / Math.sqrt(3);
+      // socket cap, button, pan
+      const R = head_diameter / 2, N = 36, r_rec = drive_size / Math.sqrt(3);
       for (let i = 0; i < N; i++) {
         const a1 = (i / N) * Math.PI * 2, a2 = ((i + 1) / N) * Math.PI * 2;
         const x1 = R * Math.cos(a1), y1 = R * Math.sin(a1), x2 = R * Math.cos(a2), y2 = R * Math.sin(a2);
@@ -404,7 +1080,7 @@ function createFastenerTriangles(params) {
           addTri(0, 0, z0, x2, y2, z0, x1, y1, z0);
         }
       }
-      if (drive_type === 'hex_drive') buildDriveRecess(z0, cut_depth);
+      if (drive_type === 'hex_drive') buildDriveRecess(z0, cut);
     }
   }
 
@@ -447,7 +1123,7 @@ function createFastenerTriangles(params) {
       const u0 = (i / N_rad) * Math.PI * 2, u1 = ((i + 1) / N_rad) * Math.PI * 2;
       addTri(0, 0, zTop, getR(u0, len) * Math.cos(u0), getR(u0, len) * Math.sin(u0), zTop, getR(u1, len) * Math.cos(u1), getR(u1, len) * Math.sin(u1), zTop);
     }
-    const headR = head_style.startsWith('hex') ? head_diameter / Math.sqrt(3) : head_diameter / 2;
+    const headR = head_diameter / 2;
     for (let i = 0; i < N_rad; i++) {
       const u0 = (i / N_rad) * Math.PI * 2, u1 = ((i + 1) / N_rad) * Math.PI * 2;
       addQuad(getR(u0, 0) * Math.cos(u0), getR(u0, 0) * Math.sin(u0), zStart,
@@ -457,22 +1133,27 @@ function createFastenerTriangles(params) {
     }
   }
 
-  if (part === 'bolt') {
-    buildHead(0, head_height);
+  // Routing
+  const isScrewOrBolt = ['socket_cap', 'hex_bolt', 'hex_flange_bolt', 'button_head', 'button_flange', 'countersunk_screw', 'pan_head', 'shoulder_screw', 'thumb_screw', 'flat_thumb_screw', 'wing_screw'].includes(part);
+  const isTapping = ['wood_hex_screw', 'tapping_screw', 'csk_tapping_screw'].includes(part);
+
+  if (isScrewOrBolt) {
+    buildHead(0, head_height, part);
     buildThreadedShaft(head_height, bolt_length, major_d, minor_d, pitch, false);
-  } else if (part === 'self_tapping') {
-    buildHead(0, head_height);
+  } else if (isTapping) {
+    buildHead(0, head_height, part);
     const tap_root = Math.max(0.25, major_d - 0.95 * tapping_pitch);
     buildThreadedShaft(head_height, bolt_length, major_d, tap_root, tapping_pitch, true);
   } else if (part === 'threaded_rod') {
     buildThreadedShaft(0, bolt_length, major_d, minor_d, pitch, false);
-  } else if (part === 'set_screw') {
+  } else if (part.startsWith('set_screw')) {
     buildThreadedShaft(0, bolt_length, major_d, minor_d, pitch, false);
     buildDriveRecess(0, Math.min(drive_depth, bolt_length * 0.4));
-  } else if (part === 'washer') {
+  } else if (part.includes('washer')) {
+    const isFender = part === 'fender_washer';
     const R_in = (major_d + 0.35) / 2;
-    const R_out = (washer_style === 'fender' ? Math.max(major_d * 3.2, major_d + 6) : Math.max(major_d * 2.2, major_d + 3.5)) / 2;
-    const th = washer_style === 'fender' ? Math.max(0.8, major_d * 0.25) : Math.max(0.5, major_d * 0.18);
+    const R_out = (isFender ? Math.max(major_d * 3.2, major_d + 6) : Math.max(major_d * 2.2, major_d + 3.5)) / 2;
+    const th = isFender ? Math.max(0.8, major_d * 0.25) : Math.max(0.5, major_d * 0.18);
     const N = 36;
     for (let i = 0; i < N; i++) {
       const a1 = (i / N) * Math.PI * 2, a2 = ((i + 1) / N) * Math.PI * 2;
@@ -491,16 +1172,30 @@ function createFastenerTriangles(params) {
     addQuad(hl, hw, 0, hl, hw, nut_h, -hl, hw, nut_h, -hl, hw, 0);
     addQuad(-hl, hw, 0, -hl, hw, nut_h, -hl, -hw, nut_h, -hl, -hw, 0);
     addQuad(hl, -hw, 0, hl, -hw, nut_h, hl, hw, nut_h, hl, hw, 0);
-  } else if (part === 'nut') {
+  } else if (['thumb_nut', 'flat_thumb_nut'].includes(part)) {
+    const R_wheel = (part === 'thumb_nut' ? Math.max(major_d * 3.6, nut_across_flats * 1.5) : Math.max(major_d * 3.2, nut_across_flats * 1.4)) / 2;
+    const h_wheel = part === 'thumb_nut' ? Math.max(2.5, major_d * 0.85) : Math.max(2.0, major_d * 0.65);
+    const R_bore = (minor_d + 2 * thread_clearance) / 2;
+    const N = 36;
+    for (let i = 0; i < N; i++) {
+      const a1 = (i / N) * Math.PI * 2, a2 = ((i + 1) / N) * Math.PI * 2;
+      addQuad(R_wheel*Math.cos(a1), R_wheel*Math.sin(a1), 0, R_wheel*Math.cos(a2), R_wheel*Math.sin(a2), 0, R_wheel*Math.cos(a2), R_wheel*Math.sin(a2), h_wheel, R_wheel*Math.cos(a1), R_wheel*Math.sin(a1), h_wheel);
+      addQuad(R_bore*Math.cos(a1), R_bore*Math.sin(a1), 0, R_bore*Math.cos(a1), R_bore*Math.sin(a1), h_wheel, R_bore*Math.cos(a2), R_bore*Math.sin(a2), h_wheel, R_bore*Math.cos(a2), R_bore*Math.sin(a2), 0);
+      addQuad(R_bore*Math.cos(a1), R_bore*Math.sin(a1), 0, R_bore*Math.cos(a2), R_bore*Math.sin(a2), 0, R_wheel*Math.cos(a2), R_wheel*Math.sin(a2), 0, R_wheel*Math.cos(a1), R_wheel*Math.sin(a1), 0);
+      addQuad(R_bore*Math.cos(a1), R_bore*Math.sin(a1), h_wheel, R_wheel*Math.cos(a1), R_wheel*Math.sin(a1), h_wheel, R_wheel*Math.cos(a2), R_wheel*Math.sin(a2), h_wheel, R_bore*Math.cos(a2), R_bore*Math.sin(a2), h_wheel);
+    }
+  } else if (part.includes('nut')) {
+    const isJam = part === 'jam_nut';
+    const effH = isJam ? Math.max(1.2, nut_height * 0.55) : nut_height;
     const R_out = nut_across_flats / Math.sqrt(3), R_bore = (minor_d + 2 * thread_clearance) / 2, R_maj = (major_d + 2 * thread_clearance) / 2;
     const N_hex = 6, N_bore = 36;
     for (let i = 0; i < N_hex; i++) {
       const a1 = (i / N_hex) * Math.PI * 2, a2 = ((i + 1) / N_hex) * Math.PI * 2;
-      addQuad(R_out * Math.cos(a1), R_out * Math.sin(a1), 0, R_out * Math.cos(a2), R_out * Math.sin(a2), 0, R_out * Math.cos(a2), R_out * Math.sin(a2), nut_height, R_out * Math.cos(a1), R_out * Math.sin(a1), nut_height);
+      addQuad(R_out * Math.cos(a1), R_out * Math.sin(a1), 0, R_out * Math.cos(a2), R_out * Math.sin(a2), 0, R_out * Math.cos(a2), R_out * Math.sin(a2), effH, R_out * Math.cos(a1), R_out * Math.sin(a1), effH);
     }
-    const N_h = Math.max(16, Math.ceil(nut_height * 6));
+    const N_h = Math.max(16, Math.ceil(effH * 6));
     for (let j = 0; j < N_h; j++) {
-      const z0 = (j / N_h) * nut_height, z1 = ((j + 1) / N_h) * nut_height;
+      const z0 = (j / N_h) * effH, z1 = ((j + 1) / N_h) * effH;
       for (let i = 0; i < N_bore; i++) {
         const u0 = (i / N_bore) * Math.PI * 2, u1 = ((i + 1) / N_bore) * Math.PI * 2;
         let p0 = (z0 - pitch * (u0 / (Math.PI * 2))) % pitch; if (p0 < 0) p0 += pitch;
@@ -517,7 +1212,7 @@ function createFastenerTriangles(params) {
       const hx0 = R_out * Math.cos(u0), hy0 = R_out * Math.sin(u0), hx1 = R_out * Math.cos(u1), hy1 = R_out * Math.sin(u1);
       const bx0 = R_bore * Math.cos(u0), by0 = R_bore * Math.sin(u0), bx1 = R_bore * Math.cos(u1), by1 = R_bore * Math.sin(u1);
       addQuad(bx0, by0, 0, bx1, by1, 0, hx1, hy1, 0, hx0, hy0, 0);
-      addQuad(bx0, by0, nut_height, hx0, hy0, nut_height, hx1, hy1, nut_height, bx1, by1, nut_height);
+      addQuad(bx0, by0, effH, hx0, hy0, effH, hx1, hy1, effH, bx1, by1, effH);
     }
   } else if (part === 'heat_set_insert') {
     const R_b = insert_diameter / 2, R_fl = insert_flange_diameter > 0 ? insert_flange_diameter / 2 : R_b, R_in = (minor_d + 2 * thread_clearance) / 2, N = 36;
@@ -545,7 +1240,7 @@ function createFastenerTriangles(params) {
   return tris;
 }
 
-function buildSTLBlob(triangles, title='Fastener') {
+function buildSTLBlob(triangles, title = 'Fastener') {
   const count = triangles.length / 9;
   const buf = new ArrayBuffer(84 + count * 50);
   const view = new DataView(buf);
@@ -599,9 +1294,8 @@ function exportSTL(which) {
         const majD = dims[size][0], nutAf = +$('nut_across_flats').value;
         const boltSpacing = Math.max(headDia, majD) + 5, nutSpacing = nutAf + 5;
         const nutRowY = Math.max(headDia, nutAf) + 6;
-        const boltPartType = curPart === 'self_tapping' ? 'self_tapping' : 'bolt';
-        const singleBoltTris = createFastenerTriangles(getParams(boltPartType));
-        const singleNutTris = createFastenerTriangles(getParams('nut'));
+        const singleBoltTris = createFastenerTriangles(getParams(curPart.includes('nut') ? 'socket_cap' : curPart));
+        const singleNutTris = createFastenerTriangles(getParams('hex_nut'));
         for (let i = 0; i < boltCount; i++) {
           const dx = i * boltSpacing;
           for (let k = 0; k < singleBoltTris.length; k += 3) {
@@ -630,19 +1324,20 @@ function exportSTL(which) {
   }, 20);
 }
 
-$('part').onchange=()=>{setDefaults();update();};
-$('size').onchange=()=>{setDefaults();update();};
-$('head_style').onchange=()=>{setDefaults();update();};
-document.querySelectorAll('input, select').forEach(x=>x.oninput=update);
-$('download').onclick=()=>save($('part').value);
-$('stl').onclick=()=>exportSTL($('part').value);
-$('batch').onclick=()=>save('batch');
-$('stl_batch').onclick=()=>exportSTL('batch');
-$('mate').onclick=()=>{
+$('part').onchange = () => { setDefaults(); update(); };
+$('size').onchange = () => { setDefaults(); update(); };
+document.querySelectorAll('input, select').forEach(x => x.oninput = update);
+$('download').onclick = () => save($('part').value);
+$('stl').onclick = () => exportSTL($('part').value);
+$('batch').onclick = () => save('batch');
+$('stl_batch').onclick = () => exportSTL('batch');
+$('mate').onclick = () => {
   const p = $('part').value;
-  save(p === 'nut' ? 'bolt' : 'nut');
+  save(p.includes('nut') ? 'socket_cap' : 'hex_nut');
 };
 
 setDefaults();
 update();
-</script></body></html>
+</script>
+</body>
+</html>
