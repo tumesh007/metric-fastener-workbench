@@ -2,7 +2,7 @@
 
 **Prepared:** 19 November 2026  
 **Project:** [tumesh007/metric-fastener-workbench](https://github.com/tumesh007/metric-fastener-workbench)  
-**Current deployed commit:** [`dae650d`](https://github.com/tumesh007/metric-fastener-workbench/commit/dae650d807143e961eb02677ae1c563e34e01f30)
+**Current application-source revision:** [`dae650d`](https://github.com/tumesh007/metric-fastener-workbench/commit/dae650d807143e961eb02677ae1c563e34e01f30). Later commits add documentation only; they do not change the workbench code.
 
 ## Executive finding
 
@@ -45,7 +45,7 @@ The correction is in [`metric_fastener.scad`](../metric_fastener.scad#L63-L70), 
 - The current M2 STL starts at Z≈0 and reaches Z≈17.8 mm. The updated M5 mesh reaches Z≈21 mm. These bounds are consistent with the cap-down pose and point at the far end.
 - The M2 and M5 corrected meshes each have one connected component in the OFF mesh audit. The agent's STL audit also reported `Simple: yes` for both sizes.
 - The current README image visibly shows the self-tapper head below its point.
-- GitHub Pages was built at the current commit and returned HTTP 200. The published SCAD, HTML, README, and preview image matched the local files at verification.
+- The live customizer returned HTTP 200 and the GitHub Pages build completed successfully. The published SCAD, HTML, README, and preview image matched the local files at verification. Documentation-only commits followed the application-source revision; no executable app code changed in this report update.
 
 These are geometry/export checks, not a physical print or fit test. The screw is still described as prototype geometry.
 
