@@ -86,5 +86,5 @@ module wall_plug_model(){tip=min(plug_length*0.22,plug_diameter*1.4);body=plug_l
         if(plug_slot_width>0) for(i=[0:1]) rotate([0,0,i*90]) translate([-plug_slot_width/2,-plug_diameter,slot_start]) cube([plug_slot_width,plug_diameter*2,plug_length-slot_start+0.1]);
     }
 }
-module batch_model(){bolt_spacing=max(head_diameter,major_d)+5;nut_spacing=nut_across_flats+5;nut_row_y=max(head_diameter,nut_across_flats)+6;if(bolt_count>0) for(i=[0:bolt_count-1]) translate([i*bolt_spacing,0,0]) bolt_model();if(nut_count>0) for(i=[0:nut_count-1]) translate([i*nut_spacing,nut_row_y,0]) nut_model();}
+module batch_model(){bolt_spacing=max(head_diameter,major_d)+5;nut_spacing=nut_across_flats+5;nut_row_y=max(head_diameter,nut_across_flats)+6;if(bolt_count>0) for(i=[0:bolt_count-1]) translate([i*bolt_spacing,0,0]) { if(part=="self_tapping") self_tapping_model(); else bolt_model(); } if(nut_count>0) for(i=[0:nut_count-1]) translate([i*nut_spacing,nut_row_y,0]) nut_model();}
 if(part=="bolt") bolt_model(); else if(part=="nut") nut_model(); else if(part=="self_tapping") self_tapping_model(); else if(part=="heat_set_insert") heat_set_insert_model(); else if(part=="wall_plug") wall_plug_model(); else batch_model();

@@ -12,37 +12,17 @@
 <div class="field" id="insertDiaBox"><label>Insert outside diameter (mm)</label><input id="insert_diameter" type="number" min="2" max="24" step=".1" value="4.6"></div><div class="field" id="insertLengthBox"><label>Insert length (mm)</label><input id="insert_length" type="number" min="1" max="25" step=".1" value="4.5"></div><div class="field" id="insertFlangeBox"><label>Flange diameter (0 disables)</label><input id="insert_flange_diameter" type="number" min="0" max="30" step=".1" value="5.2"></div><div class="field" id="insertFlangeHeightBox"><label>Flange height (mm)</label><input id="insert_flange_height" type="number" min="0" max="3" step=".1" value=".5"></div><div class="field" id="insertKnurlsBox"><label>Insert knurls</label><input id="insert_knurl_count" type="number" min="0" max="32" step="1" value="8"></div>
 <div class="field" id="plugDiaBox"><label>Plug diameter (mm)</label><input id="plug_diameter" type="number" min="2" max="30" step=".1" value="7.5"></div><div class="field" id="plugLengthBox"><label>Plug length (mm)</label><input id="plug_length" type="number" min="3" max="80" step="1" value="18"></div><div class="field" id="plugBoreBox"><label>Screw bore diameter (mm)</label><input id="plug_bore_diameter" type="number" min=".5" max="15" step=".1" value="1.7"></div><div class="field" id="plugSlotBox"><label>Split slot width (mm)</label><input id="plug_slot_width" type="number" min="0" max="4" step=".1" value=".8"></div>
 <div class="field wide" id="clearanceBox"><label>Thread fit clearance (radial, mm)</label><input id="thread_clearance" type="number" min="0" max=".8" step=".05" value=".2"></div><div class="field"><label>Nuts in combined file</label><input id="nut_count" type="number" min="0" max="30" value="4"></div><div class="field"><label>Bolts in combined file</label><input id="bolt_count" type="number" min="0" max="30" value="4"></div></div>
-<div class="buttons"><button id="download">Download selected .scad</button><button id="mate">Download matching part</button></div><div class="buttons"><button id="batch">Download nuts + bolts batch .scad</button><button id="stl">Export batch STL</button></div><p class="note" id="status"></p><p class="note">GitHub Pages is static. Direct STL export needs the local Node/OpenSCAD app; otherwise download SCAD and export from OpenSCAD.</p></section><section class="card preview"><h2>Model preview <span class="badge" id="badge"></span></h2><div class="stage"><svg id="drawing" viewBox="0 0 440 330" role="img" aria-label="Illustrative model preview"></svg></div><div class="specs" id="specs"></div></section></div><p class="note">New self-tapping screws, printed insert mock-ups and wall plugs are prototype geometry, not certified fasteners, inserts or masonry anchors. Plastic nuts and bolts are not strength-rated metal replacements.</p></main>
+<div class="buttons"><button id="download">Download selected .scad</button><button id="stl">Export selected STL</button></div><div class="buttons"><button id="batch">Download batch .scad</button><button id="stl_batch">Export batch STL</button></div><div class="buttons"><button id="mate">Download matching part</button></div><p class="note" id="status"></p><p class="note">Direct STL export renders watertight binary STL in browser. Works on GitHub Pages &amp; locally.</p></section><section class="card preview"><h2>Model preview <span class="badge" id="badge"></span></h2><div class="stage"><svg id="drawing" viewBox="0 0 440 330" role="img" aria-label="Illustrative model preview"></svg></div><div class="specs" id="specs"></div></section></div><p class="note">New self-tapping screws, printed insert mock-ups and wall plugs are prototype geometry, not certified fasteners, inserts or masonry anchors. Plastic nuts and bolts are not strength-rated metal replacements.</p></main>
 <script>
-const sizes=['M1','M1.2','M1.4','M1.6','M1.8','M2','M2.5','M3','M3.5','M4','M5','M6','M7','M8','M9','M10'];const dims={M1:[1,.25],'M1.2':[1.2,.25],'M1.4':[1.4,.3],'M1.6':[1.6,.35],'M1.8':[1.8,.35],M2:[2,.4],'M2.5':[2.5,.45],M3:[3,.5],'M3.5':[3.5,.6],M4:[4,.7],M5:[5,.8],M6:[6,1],M7:[7,1],M8:[8,1.25],M9:[9,1.25],M10:[10,1.5]};const $=id=>document.getElementById(id);sizes.forEach(s=>$('size').add(new Option(s,s)));$('size').value='M3';
+const sizes=['M1','M1.2','M1.4','M1.6','M1.8','M2','M2.5','M3','M3.5','M4','M5','M6','M7','M8','M9','M10'];
+const dims={M1:[1,.25],'M1.2':[1.2,.25],'M1.4':[1.4,.3],'M1.6':[1.6,.35],'M1.8':[1.8,.35],M2:[2,.4],'M2.5':[2.5,.45],M3:[3,.5],'M3.5':[3.5,.6],M4:[4,.7],M5:[5,.8],M6:[6,1],M7:[7,1],M8:[8,1.25],M9:[9,1.25],M10:[10,1.5]};
+const $=id=>document.getElementById(id);
+sizes.forEach(s=>$('size').add(new Option(s,s)));
+$('size').value='M3';
+
 const core=`function nominal_d(s) = s=="M1"?1:s=="M1.2"?1.2:s=="M1.4"?1.4:s=="M1.6"?1.6:s=="M1.8"?1.8:s=="M2"?2:s=="M2.5"?2.5:s=="M3"?3:s=="M3.5"?3.5:s=="M4"?4:s=="M5"?5:s=="M6"?6:s=="M7"?7:s=="M8"?8:s=="M9"?9:10;
 function nominal_pitch(s) = s=="M1"?0.25:s=="M1.2"?0.25:s=="M1.4"?0.3:s=="M1.6"?0.35:s=="M1.8"?0.35:s=="M2"?0.4:s=="M2.5"?0.45:s=="M3"?0.5:s=="M3.5"?0.6:s=="M4"?0.7:s=="M5"?0.8:s=="M6"?1:s=="M7"?1:s=="M8"?1.25:s=="M9"?1.25:1.5;
 function nominal_af(s) = s=="M1"?2:s=="M1.2"?2.5:s=="M1.4"?2.5:s=="M1.6"?3.2:s=="M1.8"?3.5:s=="M2"?4:s=="M2.5"?5:s=="M3"?5.5:s=="M3.5"?6:s=="M4"?7:s=="M5"?8:s=="M6"?10:s=="M7"?11:s=="M8"?13:s=="M9"?14:17;
-part = "bolt"; // [bolt, nut, self_tapping, heat_set_insert, wall_plug, batch]
-size = "M3"; // [M1, M1.2, M1.4, M1.6, M1.8, M2, M2.5, M3, M3.5, M4, M5, M6, M7, M8, M9, M10]
-bolt_length = 16; // [3:1:60] mm
-head_style = "socket"; // [hex, socket, phillips, slotted]
-head_height = head_style=="hex"?(size=="M3"?2:size=="M4"?2.8:size=="M5"?3.5:max(1,nominal_d(size)*0.7)):(size=="M3"?3:size=="M4"?4:size=="M5"?5:max(1,nominal_d(size)*0.9)); // [1:0.2:12] mm
-head_diameter = head_style=="hex"?nominal_af(size):(size=="M3"?5.5:size=="M4"?7:size=="M5"?8.5:max(nominal_d(size)+0.8,nominal_d(size)*1.7)); // [2:0.1:20] mm
-drive_size = size=="M3"?2.5:size=="M4"?3:size=="M5"?4:max(0.8,nominal_d(size)*0.75); // [0.5:0.1:10] mm
-drive_width = 0.7; // [0.2:0.1:3] mm
-drive_depth = 1.2; // [0.3:0.1:8] mm
-nut_height = size=="M3"?2.4:size=="M4"?3.2:size=="M5"?4:max(0.8,nominal_d(size)*0.8); // [0.8:0.2:12] mm
-nut_across_flats = nominal_af(size); // [2:0.1:24] mm
-thread_clearance = 0.20; // [0:0.05:0.8] mm radial
-tapping_pitch = 1; // [0.3:0.1:4] mm (prototype, not ISO)
-insert_diameter = 4.6; // [2:0.1:24] mm outside diameter
-insert_length = 4.5; // [1:0.2:25] mm
-insert_flange_diameter = 5.2; // [0:0.1:30] mm (0 disables flange)
-insert_flange_height = 0.5; // [0:0.1:3] mm
-insert_knurl_count = 8; // [0:1:32]
-plug_diameter = 7.5; // [2:0.1:30] mm
-plug_length = 18; // [3:1:80] mm
-plug_bore_diameter = 1.7; // [0.5:0.1:15] mm
-plug_slot_width = 0.8; // [0:0.1:4] mm
-bolt_count = 4; // [0:1:30]
-nut_count = 4; // [0:1:30]
-$fn = 72;
 
 // ISO coarse pitch series (ISO 261). The printable thread remains an approximation.
 major_d = nominal_d(size);
@@ -75,9 +55,6 @@ module nut_model(){difference(){hex_prism(nut_across_flats,nut_height);union(){t
 
 // Separate prototype for a pointed plastic self-tapping screw. Pitch is adjustable.
 module self_tapping_shaft(){root=max(0.25,major_d-0.95*tapping_pitch); tip=min(bolt_length*0.32,2.2*tapping_pitch); threaded=max(0.5,bolt_length-tip);
-    // In local bolt coordinates the head is at Z=bolt_length. Keep the full
-    // diameter root at that end; taper toward local Z=0 so it becomes the
-    // upper, far end after the established 180-degree cap-down transform.
     intersection(){union(){translate([0,0,tip]) cylinder(d=root,h=threaded);cylinder(d1=0.35,d2=root,h=tip);translate([0,0,tip-tapping_pitch]) helix_profile(root/2-0.025,0.58*tapping_pitch,tapping_pitch,threaded);} union(){translate([0,0,tip]) cylinder(d=major_d,h=threaded);cylinder(d1=0.35,d2=major_d,h=tip+0.01);}}
 }
 module self_tapping_model(){translate([0,0,bolt_length+head_height]) rotate([180,0,0]) union(){self_tapping_shaft();translate([0,0,bolt_length]) bolt_head();}}
@@ -99,18 +76,360 @@ module wall_plug_model(){tip=min(plug_length*0.22,plug_diameter*1.4);body=plug_l
         if(plug_slot_width>0) for(i=[0:1]) rotate([0,0,i*90]) translate([-plug_slot_width/2,-plug_diameter,slot_start]) cube([plug_slot_width,plug_diameter*2,plug_length-slot_start+0.1]);
     }
 }
-module batch_model(){bolt_spacing=max(head_diameter,major_d)+5;nut_spacing=nut_across_flats+5;nut_row_y=max(head_diameter,nut_across_flats)+6;if(bolt_count>0) for(i=[0:bolt_count-1]) translate([i*bolt_spacing,0,0]) bolt_model();if(nut_count>0) for(i=[0:nut_count-1]) translate([i*nut_spacing,nut_row_y,0]) nut_model();}
-if(part=="bolt") bolt_model(); else if(part=="nut") nut_model(); else if(part=="self_tapping") self_tapping_model(); else if(part=="heat_set_insert") heat_set_insert_model(); else if(part=="wall_plug") wall_plug_model(); else batch_model();
-`;
+module batch_model(){bolt_spacing=max(head_diameter,major_d)+5;nut_spacing=nut_across_flats+5;nut_row_y=max(head_diameter,nut_across_flats)+6;if(bolt_count>0) for(i=[0:bolt_count-1]) translate([i*bolt_spacing,0,0]) if(part=="self_tapping") self_tapping_model(); else bolt_model();if(nut_count>0) for(i=[0:nut_count-1]) translate([i*nut_spacing,nut_row_y,0]) nut_model();}
+if(part=="bolt") bolt_model(); else if(part=="nut") nut_model(); else if(part=="self_tapping") self_tapping_model(); else if(part=="heat_set_insert") heat_set_insert_model(); else if(part=="wall_plug") wall_plug_model(); else batch_model();`;
+
 const fields=['bolt_length','head_style','head_height','head_diameter','drive_size','drive_width','drive_depth','nut_height','nut_across_flats','thread_clearance','tapping_pitch','insert_diameter','insert_length','insert_flange_diameter','insert_flange_height','insert_knurl_count','plug_diameter','plug_length','plug_bore_diameter','plug_slot_width','bolt_count','nut_count'];
-function setDefaults(){let s=$('size').value,[d,p]=dims[s],i=sizes.indexOf(s),af=({M1:2,'M1.2':2.5,'M1.4':2.5,'M1.6':3.2,'M1.8':3.5,M2:4,'M2.5':5,M3:5.5,'M3.5':6,M4:7,M5:8,M6:10,M7:11,M8:13,M9:14,M10:17})[s]; $('nut_across_flats').value=af;$('nut_height').value=d<3?Math.max(.8,d*.8):d===3?2.4:d===4?3.2:d===5?4:d*.8;let hx=$('head_style').value==='hex';$('head_diameter').value=d===3?(hx?5.5:5.5):d===4?(hx?7:7):d===5?(hx?8:8.5):Math.max(d*1.8,d+1);$('head_height').value=d===3?(hx?2:3):d===4?(hx?2.8:4):d===5?(hx?3.5:5):d*.8;$('drive_size').value=d<3?Math.max(.8,d*.8):d===3?2.5:d===4?3:d===5?4:d*.75;$('tapping_pitch').value=Math.max(.3,Math.round(d*(d<3?.45:.3)*10)/10);$('insert_diameter').value=Math.max(d+1,d*1.5);$('insert_length').value=Math.max(2,d*1.5);$('insert_flange_diameter').value=d*1.75;$('insert_flange_height').value=Math.max(.3,d*.16);$('insert_flange_height').value=Math.max(.3,d*.16);$('plug_diameter').value=d*2.5;$('plug_length').value=d*6;$('plug_bore_diameter').value=d*.55;}
-function update(){let part=$('part').value,size=$('size').value,[d,p]=dims[size], bolt=['bolt','self_tapping'].includes(part),nut=part==='nut',insert=part==='heat_set_insert',plug=part==='wall_plug',fast=bolt||nut;const show=(id,on)=>$(id).classList.toggle('hidden',!on);show('lengthBox',bolt);show('headBox',bolt);show('headDiaBox',bolt);show('headHeightBox',bolt);show('driveSizeBox',bolt&&$('head_style').value!=='hex');show('driveWidthBox',bolt&&['phillips','slotted'].includes($('head_style').value));show('driveDepthBox',bolt&&$('head_style').value!=='hex');show('nutAfBox',nut);show('nutHeightBox',nut);show('tapBox',part==='self_tapping');['insertDiaBox','insertLengthBox','insertFlangeBox','insertFlangeHeightBox','insertKnurlsBox'].forEach(x=>show(x,insert));['plugDiaBox','plugLengthBox','plugBoreBox','plugSlotBox'].forEach(x=>show(x,plug));show('clearanceBox',fast||insert);$('badge').textContent=part.toUpperCase().replaceAll('_',' ')+' · '+size;$('mate').textContent=nut?'Download matching bolt':'Download matching nut';$('mate').classList.toggle('hidden',!fast);$('bolt_length').value=Math.max(+$('bolt_length').min,+$('bolt_length').value);$('lengthOut').textContent=$('bolt_length').value+' mm';let sc=d*12;let sh=`<ellipse cx="220" cy="300" rx="120" ry="10" fill="#080c11"/>`;
-if(part==='nut'){sh+=`<polygon points="125,115 170,78 270,78 315,115 270,150 170,150" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/><path d="M125 115v55l45 35v-55zm190 0v55l-45 35v-55zm-145 35h100v55H170z" fill="#496d6b" stroke="#a4dfd0" stroke-width="2"/><ellipse cx="220" cy="115" rx="43" ry="19" fill="#10151d" stroke="#d0f2e9" stroke-width="3"/>`}
-else if(part==='heat_set_insert'){sh+=`<path d="M165 105h110v145H165z" fill="#557f7a" stroke="#b8e8df" stroke-width="3"/><path d="M145 105h150v22H145z" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/><ellipse cx="220" cy="105" rx="55" ry="20" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/><ellipse cx="220" cy="105" rx="23" ry="9" fill="#10151d" stroke="#d0f2e9" stroke-width="2"/>${[0,1,2,3,4].map(i=>`<path d="M${170+i*22} 135v105" stroke="#b8e8df" opacity=".65"/>`).join('')}`}
-else if(part==='wall_plug'){sh+=`<path d="M175 100h90v130l-45 55-45-55z" fill="#557f7a" stroke="#b8e8df" stroke-width="3"/><path d="M165 100h110v18H165z" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/><path d="M215 118v142 M225 118v142" stroke="#10151d" stroke-width="5"/>`}
-else {sh+=`<path d="M206 170v105l14 18 14-18V170z" fill="#557f7a" stroke="#b8e8df" stroke-width="2"/><path d="M207 190h26m-26 16h26m-26 16h26m-26 16h26m-26 16h26" stroke="#b8e8df"/>`;sh+=`<path d="M165 115v55q0 15 15 15h80q15 0 15-15v-55z" fill="#496d6b" stroke="#a4dfd0" stroke-width="3"/><ellipse cx="220" cy="115" rx="55" ry="17" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/>`;if($('head_style').value==='phillips')sh+=`<path d="M195 115h50m-25-13v26" stroke="#10151d" stroke-width="8"/>`;else if($('head_style').value==='slotted')sh+=`<path d="M197 115h46" stroke="#10151d" stroke-width="7"/>`;else if($('head_style').value==='socket')sh+=`<polygon points="220,105 235,110 235,120 220,125 205,120 205,110" fill="#10151d" stroke="#b8e8df"/>`;}
-$('drawing').innerHTML=sh+`<text x="220" y="320" fill="#9eafc1" text-anchor="middle" font-size="12">Illustrative preview · ${size} · pitch ${p} mm</text>`;$('specs').innerHTML=`<span>Major diameter <b>${d} mm</b></span><span>ISO coarse pitch <b>${p} mm</b></span><span>${insert?'Adjustable printed insert envelope':plug?'Adjustable tapered plug':part==='self_tapping'?'Prototype self-tapping geometry':'Printable approximate thread'}</span>`;}
-function source(which=$('part').value){let values=fields.map(id=>`${id} = ${$(id).value};`).join('\n');return `// Generated by Metric Fastener Workbench\npart = "${which}";\nsize = "${$('size').value}";\nhead_style = "${$('head_style').value}";\n${values}\n\n${core}`;}
-function save(which){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([source(which)],{type:'text/plain'}));a.download=`${$('size').value}_${which}.scad`;a.click();URL.revokeObjectURL(a.href)}
-$('part').onchange=update;$('size').onchange=()=>{setDefaults();update()};$('head_style').onchange=()=>{setDefaults();update()};document.querySelectorAll('input').forEach(x=>x.oninput=update);$('download').onclick=()=>save($('part').value);$('mate').onclick=()=>save($('part').value==='nut'?'bolt':'nut');$('batch').onclick=()=>save('batch');$('stl').onclick=async()=>{let b=$('stl');b.disabled=true;$('status').textContent='Rendering combined nuts and bolts…';try{let r=await fetch('/api/render',{method:'POST',headers:{'Content-Type':'text/plain'},body:source('batch')});if(!r.ok)throw Error(await r.text());let a=document.createElement('a');a.href=URL.createObjectURL(await r.blob());a.download='fastener_batch.stl';a.click();$('status').textContent='STL downloaded.'}catch(e){$('status').textContent=e.message==='Failed to fetch'?'Direct STL export needs the local Node/OpenSCAD app. Use the downloaded SCAD with OpenSCAD on GitHub Pages.':e.message}finally{b.disabled=false}};setDefaults();update();if(location.hostname.endsWith('.github.io')){$('stl').disabled=true;$('status').textContent='GitHub Pages is static: download batch SCAD and render it in OpenSCAD for a single STL.'}
+
+function setDefaults(){
+  let s=$('size').value,[d,p]=dims[s],i=sizes.indexOf(s),af=({M1:2,'M1.2':2.5,'M1.4':2.5,'M1.6':3.2,'M1.8':3.5,M2:4,'M2.5':5,M3:5.5,'M3.5':6,M4:7,M5:8,M6:10,M7:11,M8:13,M9:14,M10:17})[s];
+  $('nut_across_flats').value=af;
+  $('nut_height').value=d<3?Math.max(.8,d*.8):d===3?2.4:d===4?3.2:d===5?4:d*.8;
+  let hx=$('head_style').value==='hex';
+  $('head_diameter').value=d===3?(hx?5.5:5.5):d===4?(hx?7:7):d===5?(hx?8:8.5):Math.max(d*1.8,d+1);
+  $('head_height').value=d===3?(hx?2:3):d===4?(hx?2.8:4):d===5?(hx?3.5:5):d*.8;
+  $('drive_size').value=d<3?Math.max(.8,d*.8):d===3?2.5:d===4?3:d===5?4:d*.75;
+  $('tapping_pitch').value=Math.max(.3,Math.round(d*(d<3?.45:.3)*10)/10);
+  $('insert_diameter').value=Math.max(d+1,d*1.5);
+  $('insert_length').value=Math.max(2,d*1.5);
+  $('insert_flange_diameter').value=d*1.75;
+  $('insert_flange_height').value=Math.max(.3,d*.16);
+  $('plug_diameter').value=d*2.5;
+  $('plug_length').value=d*6;
+  $('plug_bore_diameter').value=d*.55;
+}
+
+function update(){
+  let part=$('part').value,size=$('size').value,[d,p]=dims[size];
+  let bolt=['bolt','self_tapping'].includes(part),nut=part==='nut',insert=part==='heat_set_insert',plug=part==='wall_plug',fast=bolt||nut;
+  const show=(id,on)=>$(id).classList.toggle('hidden',!on);
+  show('lengthBox',bolt);show('headBox',bolt);show('headDiaBox',bolt);show('headHeightBox',bolt);
+  show('driveSizeBox',bolt&&$('head_style').value!=='hex');
+  show('driveWidthBox',bolt&&['phillips','slotted'].includes($('head_style').value));
+  show('driveDepthBox',bolt&&$('head_style').value!=='hex');
+  show('nutAfBox',nut);show('nutHeightBox',nut);show('tapBox',part==='self_tapping');
+  ['insertDiaBox','insertLengthBox','insertFlangeBox','insertFlangeHeightBox','insertKnurlsBox'].forEach(x=>show(x,insert));
+  ['plugDiaBox','plugLengthBox','plugBoreBox','plugSlotBox'].forEach(x=>show(x,plug));
+  show('clearanceBox',fast||insert);
+  $('badge').textContent=part.toUpperCase().replaceAll('_',' ')+' · '+size;
+  if(part==='nut') $('mate').textContent='Download matching bolt .scad';
+  else if(part==='heat_set_insert'||part==='wall_plug') $('mate').textContent='Download matching screw .scad';
+  else $('mate').textContent='Download matching nut .scad';
+  $('bolt_length').value=Math.max(+$('bolt_length').min,+$('bolt_length').value);
+  $('lengthOut').textContent=$('bolt_length').value+' mm';
+  let sh=`<ellipse cx="220" cy="300" rx="120" ry="10" fill="#080c11"/>`;
+  if(part==='nut'){sh+=`<polygon points="125,115 170,78 270,78 315,115 270,150 170,150" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/><path d="M125 115v55l45 35v-55zm190 0v55l-45 35v-55zm-145 35h100v55H170z" fill="#496d6b" stroke="#a4dfd0" stroke-width="2"/><ellipse cx="220" cy="115" rx="43" ry="19" fill="#10151d" stroke="#d0f2e9" stroke-width="3"/>`}
+  else if(part==='heat_set_insert'){sh+=`<path d="M165 105h110v145H165z" fill="#557f7a" stroke="#b8e8df" stroke-width="3"/><path d="M145 105h150v22H145z" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/><ellipse cx="220" cy="105" rx="55" ry="20" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/><ellipse cx="220" cy="105" rx="23" ry="9" fill="#10151d" stroke="#d0f2e9" stroke-width="2"/>${[0,1,2,3,4].map(i=>`<path d="M${170+i*22} 135v105" stroke="#b8e8df" opacity=".65"/>`).join('')}`}
+  else if(part==='wall_plug'){sh+=`<path d="M175 100h90v130l-45 55-45-55z" fill="#557f7a" stroke="#b8e8df" stroke-width="3"/><path d="M165 100h110v18H165z" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/><path d="M215 118v142 M225 118v142" stroke="#10151d" stroke-width="5"/>`}
+  else {sh+=`<path d="M206 170v105l14 18 14-18V170z" fill="#557f7a" stroke="#b8e8df" stroke-width="2"/><path d="M207 190h26m-26 16h26m-26 16h26m-26 16h26m-26 16h26" stroke="#b8e8df"/>`;sh+=`<path d="M165 115v55q0 15 15 15h80q15 0 15-15v-55z" fill="#496d6b" stroke="#a4dfd0" stroke-width="3"/><ellipse cx="220" cy="115" rx="55" ry="17" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/>`;if($('head_style').value==='phillips')sh+=`<path d="M195 115h50m-25-13v26" stroke="#10151d" stroke-width="8"/>`;else if($('head_style').value==='slotted')sh+=`<path d="M197 115h46" stroke="#10151d" stroke-width="7"/>`;else if($('head_style').value==='socket')sh+=`<polygon points="220,105 235,110 235,120 220,125 205,120 205,110" fill="#10151d" stroke="#b8e8df"/>`;}
+  $('drawing').innerHTML=sh+`<text x="220" y="320" fill="#9eafc1" text-anchor="middle" font-size="12">Illustrative preview · ${size} · pitch ${p} mm</text>`;
+  $('specs').innerHTML=`<span>Major diameter <b>${d} mm</b></span><span>ISO coarse pitch <b>${p} mm</b></span><span>${insert?'Adjustable printed insert envelope':plug?'Adjustable tapered plug':part==='self_tapping'?'Prototype self-tapping geometry':'Printable approximate thread'}</span>`;
+}
+
+function source(which=$('part').value){
+  let values=fields.filter(id=>id!=='head_style').map(id=>`${id} = ${$(id).value};`).join('\n');
+  return `// Generated by Metric Fastener Workbench\npart = "${which}";\nsize = "${$('size').value}";\nhead_style = "${$('head_style').value}";\n${values}\n$fn = 72;\n\n${core}`;
+}
+
+function save(which){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([source(which)],{type:'text/plain'}));
+  a.download=`${$('size').value}_${which}.scad`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function getParams(part = $('part').value) {
+  const size = $('size').value;
+  const [d, p] = dims[size];
+  return {
+    part, size, major_d: d, pitch: p,
+    bolt_length: +$('bolt_length').value,
+    head_style: $('head_style').value,
+    head_height: +$('head_height').value,
+    head_diameter: +$('head_diameter').value,
+    drive_size: +$('drive_size').value,
+    drive_width: +$('drive_width').value,
+    drive_depth: +$('drive_depth').value,
+    nut_height: +$('nut_height').value,
+    nut_across_flats: +$('nut_across_flats').value,
+    thread_clearance: +$('thread_clearance').value,
+    tapping_pitch: +$('tapping_pitch').value,
+    insert_diameter: +$('insert_diameter').value,
+    insert_length: +$('insert_length').value,
+    insert_flange_diameter: +$('insert_flange_diameter').value,
+    insert_flange_height: +$('insert_flange_height').value,
+    insert_knurl_count: +$('insert_knurl_count').value,
+    plug_diameter: +$('plug_diameter').value,
+    plug_length: +$('plug_length').value,
+    plug_bore_diameter: +$('plug_bore_diameter').value,
+    plug_slot_width: +$('plug_slot_width').value,
+    bolt_count: +$('bolt_count').value,
+    nut_count: +$('nut_count').value
+  };
+}
+
+function createFastenerTriangles(params) {
+  const tris = [];
+  function addTri(ax, ay, az, bx, by, bz, cx, cy, cz) { tris.push(ax, ay, az, bx, by, bz, cx, cy, cz); }
+  function addQuad(ax, ay, az, bx, by, bz, cx, cy, cz, dx, dy, dz) {
+    addTri(ax, ay, az, bx, by, bz, cx, cy, cz);
+    addTri(ax, ay, az, cx, cy, cz, dx, dy, dz);
+  }
+
+  const {
+    part='bolt', major_d=3, pitch=0.5, bolt_length=16, head_style='socket',
+    head_diameter=5.5, head_height=3, drive_size=2.5, drive_width=0.7, drive_depth=1.2,
+    nut_across_flats=5.5, nut_height=2.4, thread_clearance=0.2, tapping_pitch=1.0,
+    insert_diameter=4.6, insert_length=4.5, insert_flange_diameter=5.2, insert_flange_height=0.5,
+    insert_knurl_count=8, plug_diameter=7.5, plug_length=18, plug_bore_diameter=1.7, plug_slot_width=0.8
+  } = params;
+
+  const minor_d = major_d - 1.08 * pitch;
+
+  function buildHead(z0, z1) {
+    const h = z1 - z0, cut_depth = Math.min(drive_depth, h - 0.2);
+    if (head_style === 'hex') {
+      const R = head_diameter / Math.sqrt(3), N = 6;
+      for (let i = 0; i < N; i++) {
+        const a1 = (i / N) * Math.PI * 2, a2 = ((i + 1) / N) * Math.PI * 2;
+        const x1 = R * Math.cos(a1), y1 = R * Math.sin(a1), x2 = R * Math.cos(a2), y2 = R * Math.sin(a2);
+        addQuad(x1, y1, z0, x2, y2, z0, x2, y2, z1, x1, y1, z1);
+        addTri(0, 0, z0, x2, y2, z0, x1, y1, z0);
+      }
+    } else {
+      const R = head_diameter / 2, N = 36, r_rec = drive_size / Math.sqrt(3);
+      for (let i = 0; i < N; i++) {
+        const a1 = (i / N) * Math.PI * 2, a2 = ((i + 1) / N) * Math.PI * 2;
+        const x1 = R * Math.cos(a1), y1 = R * Math.sin(a1), x2 = R * Math.cos(a2), y2 = R * Math.sin(a2);
+        addQuad(x1, y1, z0, x2, y2, z0, x2, y2, z1, x1, y1, z1);
+        const ix1 = r_rec * Math.cos(a1), iy1 = r_rec * Math.sin(a1), ix2 = r_rec * Math.cos(a2), iy2 = r_rec * Math.sin(a2);
+        if (head_style === 'socket') {
+          addQuad(ix1, iy1, z0, ix2, iy2, z0, x2, y2, z0, x1, y1, z0);
+        } else {
+          addTri(0, 0, z0, x2, y2, z0, x1, y1, z0);
+        }
+      }
+      if (head_style === 'socket') {
+        const N_hex = 6;
+        for (let i = 0; i < N_hex; i++) {
+          const a1 = (i / N_hex) * Math.PI * 2, a2 = ((i + 1) / N_hex) * Math.PI * 2;
+          const x1 = r_rec * Math.cos(a1), y1 = r_rec * Math.sin(a1), x2 = r_rec * Math.cos(a2), y2 = r_rec * Math.sin(a2);
+          addQuad(x1, y1, z0, x1, y1, z0 + cut_depth, x2, y2, z0 + cut_depth, x2, y2, z0);
+          addTri(0, 0, z0 + cut_depth, x1, y1, z0 + cut_depth, x2, y2, z0 + cut_depth);
+        }
+      }
+    }
+  }
+
+  function buildThreadedShaft(zStart, len, dMaj, dMin, p, isTapered) {
+    const N_rad = 36, N_h = Math.max(30, Math.ceil(len * 8));
+    const root_r = dMin / 2, crest_r = dMaj / 2, base_w = 0.72 * p, crest_w = 0.12 * p;
+    function getR(u, rz) {
+      let cRoot = root_r, cCrest = crest_r;
+      if (isTapered) {
+        const tip = Math.min(len * 0.32, 2.2 * p);
+        if (rz > len - tip) {
+          const frac = (len - rz) / tip;
+          cRoot = 0.18 + (root_r - 0.18) * frac;
+          cCrest = 0.20 + (crest_r - 0.20) * frac;
+        }
+      }
+      const cDepth = cCrest - cRoot;
+      let phase = (rz - p * (u / (Math.PI * 2))) % p; if (phase < 0) phase += p;
+      if (phase < base_w) {
+        const mid = base_w / 2, dist = Math.abs(phase - mid);
+        if (dist <= crest_w / 2) return cCrest;
+        return cRoot + Math.max(0, 1 - (dist - crest_w / 2) / ((base_w - crest_w) / 2)) * cDepth;
+      }
+      return cRoot;
+    }
+    for (let j = 0; j < N_h; j++) {
+      const z0 = zStart + (j / N_h) * len, z1 = zStart + ((j + 1) / N_h) * len;
+      const rz0 = (j / N_h) * len, rz1 = ((j + 1) / N_h) * len;
+      for (let i = 0; i < N_rad; i++) {
+        const u0 = (i / N_rad) * Math.PI * 2, u1 = ((i + 1) / N_rad) * Math.PI * 2;
+        const x00 = getR(u0, rz0) * Math.cos(u0), y00 = getR(u0, rz0) * Math.sin(u0);
+        const x10 = getR(u1, rz0) * Math.cos(u1), y10 = getR(u1, rz0) * Math.sin(u1);
+        const x01 = getR(u0, rz1) * Math.cos(u0), y01 = getR(u0, rz1) * Math.sin(u0);
+        const x11 = getR(u1, rz1) * Math.cos(u1), y11 = getR(u1, rz1) * Math.sin(u1);
+        addQuad(x00, y00, z0, x10, y10, z0, x11, y11, z1, x01, y01, z1);
+      }
+    }
+    const zTop = zStart + len;
+    for (let i = 0; i < N_rad; i++) {
+      const u0 = (i / N_rad) * Math.PI * 2, u1 = ((i + 1) / N_rad) * Math.PI * 2;
+      addTri(0, 0, zTop, getR(u0, len) * Math.cos(u0), getR(u0, len) * Math.sin(u0), zTop, getR(u1, len) * Math.cos(u1), getR(u1, len) * Math.sin(u1), zTop);
+    }
+    const headR = head_style === 'hex' ? head_diameter / Math.sqrt(3) : head_diameter / 2;
+    for (let i = 0; i < N_rad; i++) {
+      const u0 = (i / N_rad) * Math.PI * 2, u1 = ((i + 1) / N_rad) * Math.PI * 2;
+      addQuad(getR(u0, 0) * Math.cos(u0), getR(u0, 0) * Math.sin(u0), zStart,
+              headR * Math.cos(u0), headR * Math.sin(u0), zStart,
+              headR * Math.cos(u1), headR * Math.sin(u1), zStart,
+              getR(u1, 0) * Math.cos(u1), getR(u1, 0) * Math.sin(u1), zStart);
+    }
+  }
+
+  if (part === 'bolt') {
+    buildHead(0, head_height);
+    buildThreadedShaft(head_height, bolt_length, major_d, minor_d, pitch, false);
+  } else if (part === 'self_tapping') {
+    buildHead(0, head_height);
+    const tap_root = Math.max(0.25, major_d - 0.95 * tapping_pitch);
+    buildThreadedShaft(head_height, bolt_length, major_d, tap_root, tapping_pitch, true);
+  } else if (part === 'nut') {
+    const R_out = nut_across_flats / Math.sqrt(3), R_bore = (minor_d + 2 * thread_clearance) / 2, R_maj = (major_d + 2 * thread_clearance) / 2;
+    const N_hex = 6, N_bore = 36;
+    for (let i = 0; i < N_hex; i++) {
+      const a1 = (i / N_hex) * Math.PI * 2, a2 = ((i + 1) / N_hex) * Math.PI * 2;
+      addQuad(R_out * Math.cos(a1), R_out * Math.sin(a1), 0, R_out * Math.cos(a2), R_out * Math.sin(a2), 0, R_out * Math.cos(a2), R_out * Math.sin(a2), nut_height, R_out * Math.cos(a1), R_out * Math.sin(a1), nut_height);
+    }
+    const N_h = Math.max(20, Math.ceil(nut_height * 8));
+    for (let j = 0; j < N_h; j++) {
+      const z0 = (j / N_h) * nut_height, z1 = ((j + 1) / N_h) * nut_height;
+      for (let i = 0; i < N_bore; i++) {
+        const u0 = (i / N_bore) * Math.PI * 2, u1 = ((i + 1) / N_bore) * Math.PI * 2;
+        let p0 = (z0 - pitch * (u0 / (Math.PI * 2))) % pitch; if (p0 < 0) p0 += pitch;
+        let p1 = (z1 - pitch * (u1 / (Math.PI * 2))) % pitch; if (p1 < 0) p1 += pitch;
+        const r0 = p0 < 0.72 * pitch ? R_maj : R_bore, r1 = p1 < 0.72 * pitch ? R_maj : R_bore;
+        addQuad(r0 * Math.cos(u0), r0 * Math.sin(u0), z0,
+                r1 * Math.cos(u1), r1 * Math.sin(u1), z1,
+                r0 * Math.cos(u1), r0 * Math.sin(u1), z0,
+                r1 * Math.cos(u0), r1 * Math.sin(u0), z1);
+      }
+    }
+    for (let i = 0; i < N_bore; i++) {
+      const u0 = (i / N_bore) * Math.PI * 2, u1 = ((i + 1) / N_bore) * Math.PI * 2;
+      const hx0 = R_out * Math.cos(u0), hy0 = R_out * Math.sin(u0), hx1 = R_out * Math.cos(u1), hy1 = R_out * Math.sin(u1);
+      const bx0 = R_bore * Math.cos(u0), by0 = R_bore * Math.sin(u0), bx1 = R_bore * Math.cos(u1), by1 = R_bore * Math.sin(u1);
+      addQuad(bx0, by0, 0, bx1, by1, 0, hx1, hy1, 0, hx0, hy0, 0);
+      addQuad(bx0, by0, nut_height, hx0, hy0, nut_height, hx1, hy1, nut_height, bx1, by1, nut_height);
+    }
+  } else if (part === 'heat_set_insert') {
+    const R_b = insert_diameter / 2, R_fl = insert_flange_diameter > 0 ? insert_flange_diameter / 2 : R_b, R_in = (minor_d + 2 * thread_clearance) / 2, N = 36;
+    for (let i = 0; i < N; i++) {
+      const u0 = (i / N) * Math.PI * 2, u1 = ((i + 1) / N) * Math.PI * 2;
+      addQuad(R_fl*Math.cos(u0), R_fl*Math.sin(u0), 0, R_fl*Math.cos(u1), R_fl*Math.sin(u1), 0, R_fl*Math.cos(u1), R_fl*Math.sin(u1), insert_flange_height, R_fl*Math.cos(u0), R_fl*Math.sin(u0), insert_flange_height);
+      const kn = (i % Math.floor(N / Math.max(1, insert_knurl_count))) === 0, r = kn ? R_b + 0.30 : R_b;
+      addQuad(r*Math.cos(u0), r*Math.sin(u0), insert_flange_height, r*Math.cos(u1), r*Math.sin(u1), insert_flange_height, r*Math.cos(u1), r*Math.sin(u1), insert_length, r*Math.cos(u0), r*Math.sin(u0), insert_length);
+      addQuad(R_in*Math.cos(u0), R_in*Math.sin(u0), 0, R_in*Math.cos(u0), R_in*Math.sin(u0), insert_length, R_in*Math.cos(u1), R_in*Math.sin(u1), insert_length, R_in*Math.cos(u1), R_in*Math.sin(u1), 0);
+      addQuad(R_in*Math.cos(u0), R_in*Math.sin(u0), 0, R_in*Math.cos(u1), R_in*Math.sin(u1), 0, R_fl*Math.cos(u1), R_fl*Math.sin(u1), 0, R_fl*Math.cos(u0), R_fl*Math.sin(u0), 0);
+      addQuad(R_in*Math.cos(u0), R_in*Math.sin(u0), insert_length, R_b*Math.cos(u0), R_b*Math.sin(u0), insert_length, R_b*Math.cos(u1), R_b*Math.sin(u1), insert_length, R_in*Math.cos(u1), R_in*Math.sin(u1), insert_length);
+    }
+  } else if (part === 'wall_plug') {
+    const R_b = plug_diameter / 2, R_bore = plug_bore_diameter / 2, R_col = R_b * 1.18, tip = Math.min(plug_length * 0.22, plug_diameter * 1.4), b_len = plug_length - tip, N = 36;
+    for (let i = 0; i < N; i++) {
+      const u0 = (i / N) * Math.PI * 2, u1 = ((i + 1) / N) * Math.PI * 2;
+      addQuad(R_col*Math.cos(u0), R_col*Math.sin(u0), 0, R_col*Math.cos(u1), R_col*Math.sin(u1), 0, R_b*Math.cos(u1), R_b*Math.sin(u1), 1.2, R_b*Math.cos(u0), R_b*Math.sin(u0), 1.2);
+      addQuad(R_b*Math.cos(u0), R_b*Math.sin(u0), 1.2, R_b*Math.cos(u1), R_b*Math.sin(u1), 1.2, R_b*Math.cos(u1), R_b*Math.sin(u1), b_len, R_b*Math.cos(u0), R_b*Math.sin(u0), b_len);
+      addQuad(R_b*Math.cos(u0), R_b*Math.sin(u0), b_len, R_b*Math.cos(u1), R_b*Math.sin(u1), b_len, R_b*0.3*Math.cos(u1), R_b*0.3*Math.sin(u1), plug_length, R_b*0.3*Math.cos(u0), R_b*0.3*Math.sin(u0), plug_length);
+      addQuad(R_bore*Math.cos(u0), R_bore*Math.sin(u0), 0, R_bore*Math.cos(u0), R_bore*Math.sin(u0), plug_length, R_bore*Math.cos(u1), R_bore*Math.sin(u1), plug_length, R_bore*Math.cos(u1), R_bore*Math.sin(u1), 0);
+      addQuad(R_bore*Math.cos(u0), R_bore*Math.sin(u0), 0, R_bore*Math.cos(u1), R_bore*Math.sin(u1), 0, R_col*Math.cos(u1), R_col*Math.sin(u1), 0, R_col*Math.cos(u0), R_col*Math.sin(u0), 0);
+      addQuad(R_bore*Math.cos(u0), R_bore*Math.sin(u0), plug_length, R_b*0.3*Math.cos(u0), R_b*0.3*Math.sin(u0), plug_length, R_b*0.3*Math.cos(u1), R_b*0.3*Math.sin(u1), plug_length, R_bore*Math.cos(u1), R_bore*Math.sin(u1), plug_length);
+    }
+  }
+  return tris;
+}
+
+function buildSTLBlob(triangles, title='Fastener') {
+  const count = triangles.length / 9;
+  const buf = new ArrayBuffer(84 + count * 50);
+  const view = new DataView(buf);
+  const enc = new TextEncoder().encode(`Metric Fastener Workbench - ${title}`.slice(0, 79));
+  new Uint8Array(buf, 0, enc.length).set(enc);
+  view.setUint32(80, count, true);
+  let off = 84;
+  for (let i = 0; i < triangles.length; i += 9) {
+    const ax = triangles[i], ay = triangles[i+1], az = triangles[i+2];
+    const bx = triangles[i+3], by = triangles[i+4], bz = triangles[i+5];
+    const cx = triangles[i+6], cy = triangles[i+7], cz = triangles[i+8];
+    const nx = (by - ay) * (cz - az) - (bz - az) * (cy - ay);
+    const ny = (bz - az) * (cx - ax) - (bx - ax) * (cz - az);
+    const nz = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
+    const len = Math.hypot(nx, ny, nz) || 1;
+    view.setFloat32(off, nx / len, true);
+    view.setFloat32(off + 4, ny / len, true);
+    view.setFloat32(off + 8, nz / len, true);
+    off += 12;
+    for (let k = 0; k < 9; k++) {
+      view.setFloat32(off, triangles[i + k], true);
+      off += 4;
+    }
+    view.setUint16(off, 0, true);
+    off += 2;
+  }
+  return new Blob([buf], { type: 'model/stl' });
+}
+
+function downloadBlob(blob, filename) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+  }, 100);
+}
+
+function exportSTL(which) {
+  const status = $('status'), size = $('size').value;
+  status.textContent = `Generating ${which} STL in browser...`;
+  setTimeout(() => {
+    try {
+      let triangles = [];
+      if (which === 'batch') {
+        const boltCount = +$('bolt_count').value, nutCount = +$('nut_count').value;
+        const curPart = $('part').value, headDia = +$('head_diameter').value;
+        const majD = dims[size][0], nutAf = +$('nut_across_flats').value;
+        const boltSpacing = Math.max(headDia, majD) + 5, nutSpacing = nutAf + 5;
+        const nutRowY = Math.max(headDia, nutAf) + 6;
+        const boltPartType = curPart === 'self_tapping' ? 'self_tapping' : 'bolt';
+        const singleBoltTris = createFastenerTriangles(getParams(boltPartType));
+        const singleNutTris = createFastenerTriangles(getParams('nut'));
+        for (let i = 0; i < boltCount; i++) {
+          const dx = i * boltSpacing;
+          for (let k = 0; k < singleBoltTris.length; k += 3) {
+            triangles.push(singleBoltTris[k] + dx, singleBoltTris[k+1], singleBoltTris[k+2]);
+          }
+        }
+        for (let i = 0; i < nutCount; i++) {
+          const dx = i * nutSpacing;
+          for (let k = 0; k < singleNutTris.length; k += 3) {
+            triangles.push(singleNutTris[k] + dx, singleNutTris[k+1] + nutRowY, singleNutTris[k+2]);
+          }
+        }
+        if (!triangles.length) throw new Error('Bolt and nut counts are both 0.');
+        const blob = buildSTLBlob(triangles, `${size}_batch`);
+        downloadBlob(blob, `${size}_batch.stl`);
+        status.textContent = `Batch STL downloaded (${boltCount} bolts/screws, ${nutCount} nuts).`;
+      } else {
+        triangles = createFastenerTriangles(getParams(which));
+        const blob = buildSTLBlob(triangles, `${size}_${which}`);
+        downloadBlob(blob, `${size}_${which}.stl`);
+        status.textContent = `${which.replace(/_/g, ' ').toUpperCase()} STL downloaded (${(triangles.length / 9).toLocaleString()} facets).`;
+      }
+    } catch (err) {
+      status.textContent = `Error: ${err.message}`;
+    }
+  }, 20);
+}
+
+$('part').onchange=update;
+$('size').onchange=()=>{setDefaults();update();};
+$('head_style').onchange=()=>{setDefaults();update();};
+document.querySelectorAll('input').forEach(x=>x.oninput=update);
+$('download').onclick=()=>save($('part').value);
+$('stl').onclick=()=>exportSTL($('part').value);
+$('batch').onclick=()=>save('batch');
+$('stl_batch').onclick=()=>exportSTL('batch');
+$('mate').onclick=()=>{
+  const p = $('part').value;
+  save(p === 'nut' ? 'bolt' : 'nut');
+};
+
+setDefaults();
+update();
 </script></body></html>

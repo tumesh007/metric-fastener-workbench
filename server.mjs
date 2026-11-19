@@ -70,13 +70,13 @@ const server = http.createServer(async (req, res) => {
   rendering = true;
   try {
     const source = await readBody(req);
-    if (!source.includes('module batch_model()') || !source.includes('part = "batch";')) {
-      send(res, 400, 'The request does not contain a Metric Fastener batch model.');
-      return;
-    }
+    const validParts = ['bolt', 'nut', 'self_tapping', 'heat_set_insert', 'wall_plug', 'batch'];
+    const partMatch = source.match(/part\s*=\s*"([^"]+)"/);
+    const requestedPart = partMatch && validParts.includes(partMatch[1]) ? partMatch[1] : 'batch';
+
     workDir = await mkdtemp(path.join(os.tmpdir(), 'metric-fastener-'));
-    const inputFile = path.join(workDir, 'batch.scad');
-    const outputFile = path.join(workDir, 'batch.stl');
+    const inputFile = path.join(workDir, `${requestedPart}.scad`);
+    const outputFile = path.join(workDir, `${requestedPart}.stl`);
     await writeFile(inputFile, source, 'utf8');
     const log = await renderScad(inputFile, outputFile);
     const stat = await readFile(outputFile);
@@ -84,7 +84,7 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(200, {
       'Content-Type': 'model/stl',
       'Content-Length': stat.length,
-      'Content-Disposition': 'attachment; filename="metric_fastener_batch.stl"',
+      'Content-Disposition': `attachment; filename="metric_fastener_${requestedPart}.stl"`,
       'X-OpenSCAD-Log': encodeURIComponent(log.slice(-1200)),
       'Cache-Control': 'no-store'
     });

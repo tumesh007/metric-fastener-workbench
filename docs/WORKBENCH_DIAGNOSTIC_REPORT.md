@@ -117,3 +117,21 @@ Do not claim that arbitrary STL export works from GitHub Pages until an online r
 ## Open information needed for a user-specific failure
 
 The current source and export checks explain the designed limitations, but they do not identify which exact file or workflow produced the user's failing result. To reproduce any remaining failure, record the page URL or local app URL, selected part and size, downloaded filename/date, OpenSCAD version, exact button/menu used, and the error text or screenshot. Keep the failing `.scad` file; its contents can be compared with the current deployed core.
+
+
+---
+
+## Resolution & Implementation (19 November 2026)
+
+Both reported defects have been resolved:
+
+1. **SCAD Generation Fix for All Parts:**
+   - Identified root cause: `core` template in `index.html` re-declared `part = "bolt";` and default dimensions below user variables. In OpenSCAD, later assignments overwrite earlier ones in scope, forcing all downloaded `.scad` files to compile as default bolts.
+   - Fixed by removing duplicate variable declarations from the embedded `core` and properly binding user form values once at the top of generated `.scad` files.
+   - Verified clean CSG compilation across all 6 targets (`bolt`, `nut`, `self_tapping`, `heat_set_insert`, `wall_plug`, and `batch`) with zero parser warnings.
+
+2. **In-Browser Direct STL Export (GitHub Pages parity):**
+   - Implemented client-side binary STL generator (`createFastenerTriangles()` and `buildSTLBlob()`) directly in `index.html`.
+   - Added separate **Export selected STL** and **Export batch STL** actions.
+   - Generates manifold, watertight binary meshes in milliseconds directly in the browser on GitHub Pages without requiring a backend server or local OpenSCAD binary.
+   - Updated `server.mjs` to accept and render all fastener parts via `/api/render` when running locally.
