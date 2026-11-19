@@ -193,40 +193,29 @@ module flat_thumb_screw_model() {
 
 module wing_screw_model() {
     base_d = max(major_d * 2.0, head_diameter * 0.8);
-    base_h = head_height;
+    h = head_height;
     wing_span = max(major_d * 4.6, 16);
     wing_th = max(2.2, major_d * 0.6);
-    wing_h = max(7.5, major_d * 2.4);
-    translate([0,0,bolt_length+base_h]) rotate([180,0,0]) union() {
-        external_threaded_shaft(bolt_length);
-        translate([0,0,bolt_length]) union() {
-            cylinder(d=base_d, h=base_h);
-            for(i=[-1,1]) hull() {
-                translate([i*base_d*0.25, 0, 0]) cylinder(d=wing_th, h=base_h);
-                translate([i*(wing_span/2 - wing_th/2), 0, wing_h - wing_th/2]) rotate([90,0,0]) cylinder(d=wing_th, h=wing_th, center=true);
-            }
-        }
+    union() {
+        cylinder(d=base_d, h=h);
+        translate([0,0,h/2]) cube([wing_span, wing_th, h], center=true);
+        for(i=[-1,1]) translate([i*(wing_span/2 - wing_th/2), 0, h/2]) cylinder(d=wing_th, h=h, center=true);
+        translate([0,0,h]) external_threaded_shaft(bolt_length);
     }
 }
 
 module oval_wing_screw_model() {
     span = max(major_d * 5.2, 20);
     th = max(major_d * 0.9, 4.0);
-    h = max(major_d * 2.6, 13);
+    h = head_height;
     hub_d = max(major_d * 2.2, head_diameter * 0.85);
-    hub_h = min(head_height * 0.6, max(1.5, major_d * 0.6));
-    tot_h = h;
-    translate([0,0,bolt_length+tot_h]) rotate([180,0,0]) union() {
-        external_threaded_shaft(bolt_length);
-        translate([0,0,bolt_length]) union() {
-            cylinder(d=hub_d, h=hub_h);
-            hull() {
-                translate([0,0,hub_h]) cylinder(d=hub_d, h=0.1);
-                translate([-span*0.35, 0, h - th/2]) rotate([90,0,0]) cylinder(d=th, h=th, center=true);
-                translate([span*0.35, 0, h - th/2]) rotate([90,0,0]) cylinder(d=th, h=th, center=true);
-                translate([0, 0, h - th/4]) rotate([90,0,0]) cylinder(d=th*1.15, h=th, center=true);
-            }
+    union() {
+        cylinder(d=hub_d, h=h);
+        hull() {
+            cylinder(d=hub_d, h=h);
+            for(i=[-1,1]) translate([i*(span/2 - th/2), 0, h/2]) cylinder(d=th, h=h, center=true);
         }
+        translate([0,0,h]) external_threaded_shaft(bolt_length);
     }
 }
 
@@ -349,9 +338,9 @@ module wing_nut_model() {
     wing_h = max(7.0, nut_across_flats * 1.3);
     hex_nut_core(nut_height) union() {
         hex_prism(nut_across_flats, nut_height);
-        for(i=[-1,1]) hull() {
-            translate([i*nut_across_flats*0.25, 0, 0]) cylinder(d=wing_th, h=nut_height);
-            translate([i*(wing_span/2 - wing_th/2), 0, wing_h - wing_th/2]) rotate([90,0,0]) cylinder(d=wing_th, h=wing_th, center=true);
+        for(i=[-1,1]) translate([i*nut_across_flats*0.42, 0, 0]) hull() {
+            cylinder(d=wing_th, h=nut_height);
+            translate([i*(wing_span/2 - nut_across_flats*0.42 - wing_th/2), 0, wing_h - wing_th]) cylinder(d=wing_th, h=wing_th);
         }
     }
 }
