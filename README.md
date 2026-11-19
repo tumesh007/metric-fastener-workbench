@@ -16,7 +16,7 @@ For a direct one-file STL download from the page, run `node server.mjs` in this 
 
 ## Use the OpenSCAD model directly
 
-Open `metric_fastener.scad` in OpenSCAD. Edit the variables at the top or use OpenSCAD's Customizer panel. Choose `bolt`, `nut`, or `batch`. Set `bolt_count` and `nut_count` for batch output. Press **F6** to render, then choose **File → Export → Export as STL**. The bolt is modeled with its drive face opposite the shank; print it vertically with the tip on the build plate, and consider a brim for adhesion. The nut prints flat on one face.
+Open `metric_fastener.scad` in OpenSCAD. Edit the variables at the top or use OpenSCAD's Customizer panel. Choose `bolt`, `nut`, or `batch`. Set `bolt_count` and `nut_count` for batch output. Press **F6** to render, then choose **File → Export → Export as STL**. Bolts are oriented cap-face down with the threaded shaft vertical, avoiding support material on the threads. Nuts print flat on one face.
 
 ## Fit and printing notes
 

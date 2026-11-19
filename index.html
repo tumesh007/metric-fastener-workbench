@@ -76,30 +76,32 @@ module hex_prism(af, h) {
 
 module bolt_model() {
     drive_cut_depth = min(drive_depth, head_height-0.2);
-    union() {
-        // Physically correct orientation: the shank joins the underside of the head;
-        // the drive recess opens on the opposite, exposed face.
-        external_threaded_shaft();
-        translate([0,0,bolt_length])
-            if (head_style == "hex") hex_prism(head_diameter, head_height);
-            // Render this small boolean locally so OpenSCAD's fast preview shows
-            // the cavity, instead of coloring the subtractor as a solid green plug.
-            else render() difference() {
-                cylinder(d=head_diameter, h=head_height);
-                if (head_style == "socket")
-                    translate([0,0,head_height-drive_cut_depth])
-                        cylinder(r=drive_size/sqrt(3), h=drive_cut_depth+0.05, $fn=6);
-                else if (head_style == "phillips")
-                    translate([0,0,head_height-drive_cut_depth])
-                        union() {
-                            translate([-drive_width/2,-drive_size/2,0]) cube([drive_width,drive_size,drive_cut_depth+0.05]);
-                            translate([-drive_size/2,-drive_width/2,0]) cube([drive_size,drive_width,drive_cut_depth+0.05]);
-                        }
-                else if (head_style == "slotted")
-                    translate([0,0,head_height-drive_cut_depth])
-                        translate([-drive_size/2,-drive_width/2,0]) cube([drive_size,drive_width,drive_cut_depth+0.05]);
-        }
-    }
+    // Print cap-face down: the cap rests on the bed and the threaded shaft rises
+    // from its opposite face, avoiding support material along the threads.
+    translate([0,0,bolt_length+head_height])
+        rotate([180,0,0])
+            union() {
+                external_threaded_shaft();
+                translate([0,0,bolt_length])
+                    if (head_style == "hex") hex_prism(head_diameter, head_height);
+                    // Render this small boolean locally so OpenSCAD's fast preview shows
+                    // the cavity, instead of coloring the subtractor as a solid green plug.
+                    else render() difference() {
+                        cylinder(d=head_diameter, h=head_height);
+                        if (head_style == "socket")
+                            translate([0,0,head_height-drive_cut_depth])
+                                cylinder(r=drive_size/sqrt(3), h=drive_cut_depth+0.05, $fn=6);
+                        else if (head_style == "phillips")
+                            translate([0,0,head_height-drive_cut_depth])
+                                union() {
+                                    translate([-drive_width/2,-drive_size/2,0]) cube([drive_width,drive_size,drive_cut_depth+0.05]);
+                                    translate([-drive_size/2,-drive_width/2,0]) cube([drive_size,drive_width,drive_cut_depth+0.05]);
+                                }
+                        else if (head_style == "slotted")
+                            translate([0,0,head_height-drive_cut_depth])
+                                translate([-drive_size/2,-drive_width/2,0]) cube([drive_size,drive_width,drive_cut_depth+0.05]);
+                    }
+            }
 }
 
 module nut_model() {
