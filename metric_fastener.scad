@@ -24,6 +24,7 @@ head_diameter = 5.5;
 drive_size = 2.5;
 drive_width = 0.7;
 drive_depth = 1.2;
+knurl_depth = 1.2;
 nut_height = 2.4;
 nut_across_flats = 5.5;
 thread_clearance = 0.20;
@@ -162,17 +163,19 @@ module thumb_screw_model() {
     wheel_d = max(head_diameter, major_d * 3.2);
     collar_d = max(major_d * 1.8, head_diameter * 0.65);
     n_teeth = max(18, round(wheel_d * 1.4));
-    tooth_depth = max(1.2, major_d * 0.28);
+    tooth_depth = max(0.2, knurl_depth);
     tooth_w = max(1.1, 3.14159 * wheel_d / (n_teeth * 1.6));
-    translate([0,0,bolt_length+total_h]) rotate([180,0,0]) union() {
-        external_threaded_shaft(bolt_length);
-        translate([0,0,bolt_length]) union() {
-            cylinder(d=collar_d, h=collar_h);
-            translate([0,0,collar_h]) union() {
+    cut = min(drive_depth, wheel_h - 0.2);
+    translate([0,0,bolt_length+total_h]) rotate([180,0,0]) difference() {
+        union() {
+            external_threaded_shaft(bolt_length + 0.05);
+            translate([0,0,bolt_length]) cylinder(d=collar_d, h=collar_h + 0.05);
+            translate([0,0,bolt_length+collar_h]) {
                 cylinder(d=wheel_d, h=wheel_h);
                 for(i=[0:n_teeth-1]) rotate([0,0,i*360/n_teeth]) translate([wheel_d/2 - tooth_depth*0.2, -tooth_w/2, 0]) cube([tooth_depth*1.2, tooth_w, wheel_h]);
             }
         }
+        if(drive_type!="none" && cut>0.05) translate([0,0,bolt_length+total_h-cut]) drive_recess(cut);
     }
 }
 
@@ -180,14 +183,18 @@ module flat_thumb_screw_model() {
     wheel_d = max(head_diameter, major_d * 3.0);
     wheel_h = head_height;
     n_teeth = max(18, round(wheel_d * 1.4));
-    tooth_depth = max(1.2, major_d * 0.28);
+    tooth_depth = max(0.2, knurl_depth);
     tooth_w = max(1.1, 3.14159 * wheel_d / (n_teeth * 1.6));
-    translate([0,0,bolt_length+wheel_h]) rotate([180,0,0]) union() {
-        external_threaded_shaft(bolt_length);
-        translate([0,0,bolt_length]) union() {
-            cylinder(d=wheel_d, h=wheel_h);
-            for(i=[0:n_teeth-1]) rotate([0,0,i*360/n_teeth]) translate([wheel_d/2 - tooth_depth*0.2, -tooth_w/2, 0]) cube([tooth_depth*1.2, tooth_w, wheel_h]);
+    cut = min(drive_depth, wheel_h - 0.2);
+    translate([0,0,bolt_length+wheel_h]) rotate([180,0,0]) difference() {
+        union() {
+            external_threaded_shaft(bolt_length + 0.05);
+            translate([0,0,bolt_length]) {
+                cylinder(d=wheel_d, h=wheel_h);
+                for(i=[0:n_teeth-1]) rotate([0,0,i*360/n_teeth]) translate([wheel_d/2 - tooth_depth*0.2, -tooth_w/2, 0]) cube([tooth_depth*1.2, tooth_w, wheel_h]);
+            }
         }
+        if(drive_type!="none" && cut>0.05) translate([0,0,bolt_length+wheel_h-cut]) drive_recess(cut);
     }
 }
 
@@ -351,7 +358,7 @@ module thumb_nut_model() {
     wheel_d = max(nut_across_flats * 1.4, major_d * 3.2);
     collar_d = max(major_d * 1.8, nut_across_flats * 0.9);
     n_teeth = max(18, round(wheel_d * 1.4));
-    tooth_depth = max(1.2, major_d * 0.28);
+    tooth_depth = max(0.2, knurl_depth);
     tooth_w = max(1.1, 3.14159 * wheel_d / (n_teeth * 1.6));
     hex_nut_core(tot_h) union() {
         cylinder(d=collar_d, h=collar_h);
@@ -365,7 +372,7 @@ module flat_thumb_nut_model() {
     wheel_d = max(nut_across_flats * 1.4, major_d * 3.0);
     wheel_h = nut_height;
     n_teeth = max(18, round(wheel_d * 1.4));
-    tooth_depth = max(1.2, major_d * 0.28);
+    tooth_depth = max(0.2, knurl_depth);
     tooth_w = max(1.1, 3.14159 * wheel_d / (n_teeth * 1.6));
     hex_nut_core(wheel_h) union() {
         cylinder(d=wheel_d, h=wheel_h);
