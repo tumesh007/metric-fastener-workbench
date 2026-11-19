@@ -42,6 +42,7 @@ The correction is in [`metric_fastener.scad`](../metric_fastener.scad#L63-L70), 
 ### Verification on the current revision
 
 - OpenSCAD exported an M2 self-tapping screw STL from the standalone SCAD source successfully: **exit code 0**, **Simple: yes**, **8,369 vertices**, **4,580 facets**, **45.8 seconds** render time.
+- Test environment: **OpenSCAD 2021.01**, Intel Mac, **Darwin 21.6.0**. Reproduction command: `OpenSCAD -o self_tapping_M2.stl -D 'part="self_tapping"' -D 'size="M2"' metric_fastener.scad`.
 - The current M2 STL starts at Z≈0 and reaches Z≈17.8 mm. The updated M5 mesh reaches Z≈21 mm. These bounds are consistent with the cap-down pose and point at the far end.
 - The M2 and M5 corrected meshes each have one connected component in the OFF mesh audit. The agent's STL audit also reported `Simple: yes` for both sizes.
 - The current README image visibly shows the self-tapper head below its point.
