@@ -11,7 +11,7 @@ The image shows the actual OpenSCAD geometry. The self-tapping screw prints head
 Live customizer: <https://tumesh007.github.io/metric-fastener-workbench/>  
 [Download the Mac app package](Metric-Fastener-Workbench-Mac.zip)
 
-GitHub Pages serves a static web app. It downloads parametric `.scad` files, but cannot render STL in the browser. Open a downloaded file in OpenSCAD and export STL, or run the local `node server.mjs` app for direct STL export. The combined batch file arranges multiple bolts and nuts as separate parts in one STL.
+GitHub Pages serves a static web app. It downloads parametric `.scad` files, but cannot render STL in the browser. For a selected part—including a self-tapping screw, insert, or wall plug—open its downloaded `.scad` in OpenSCAD and export STL there. The local `Export batch STL` action supports a combined bolts-and-nuts batch only; it does not export the currently selected part. See the [diagnostic report](docs/WORKBENCH_DIAGNOSTIC_REPORT.md) for the verified limitations and troubleshooting steps.
 
 ## Part options
 
