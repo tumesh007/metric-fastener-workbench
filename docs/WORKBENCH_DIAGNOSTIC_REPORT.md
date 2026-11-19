@@ -135,3 +135,15 @@ Both reported defects have been resolved:
    - Added separate **Export selected STL** and **Export batch STL** actions.
    - Generates manifold, watertight binary meshes in milliseconds directly in the browser on GitHub Pages without requiring a backend server or local OpenSCAD binary.
    - Updated `server.mjs` to accept and render all fastener parts via `/api/render` when running locally.
+
+3. **FreeCAD Fasteners Workbench Taxonomy Integration:**
+   - Extended models and controls with standard ISO/DIN/EN options:
+     - Hexagon head bolts (ISO 4014/4017, DIN 933, EN 1665 flanged)
+     - Socket & countersunk screws (ISO 4762, ISO 7380, ISO 10642, ISO 7045, DIN 464)
+     - Drive options: Hex socket, Torx/Hexalobular (ISO 14579), Phillips, Slotted
+     - Nuts: ISO 4032, Flanged DIN 6923, Nyloc DIN 985, Acorn DIN 1587, Wing DIN 315
+     - Washers: ISO 7089 Flat, ISO 7093 Fender
+     - Rods & studs: DIN 975
+     - Set screws: ISO 4026 grub screws
+     - T-slot nuts: 2020 / 3030 extrusion profiles
+   - Verified clean compilation in OpenSCAD across all 10 part families.

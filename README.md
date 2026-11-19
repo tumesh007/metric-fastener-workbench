@@ -13,12 +13,21 @@ Live customizer: <https://tumesh007.github.io/metric-fastener-workbench/>
 
 The GitHub Pages web app generates and downloads both parametric `.scad` files and watertight binary `.stl` files directly in the browser for all parts (bolts, nuts, self-tapping screws, printed inserts, wall plugs, and batch plates). No backend or local OpenSCAD install is required for direct STL export on GitHub Pages. For offline OpenSCAD rendering or local batch jobs, the included `server.mjs` service supports direct rendering of all fastener parts.
 
-## Part options
+## Part options (FreeCAD Fasteners Workbench taxonomy)
 
-- **Bolt and nut:** approximate printable threads, style-selectable hex, socket, Phillips, or slotted bolt heads. The bolt rests cap-face down with the shaft rising from the build plate.
-- **Self-tapping screw prototype:** separate pointed screw geometry with adjustable prototype pitch and the same head options.
-- **Printed insert prototype:** adjustable sleeve, flange, knurls and internal thread. This is a printed geometric mock-up, not a commercial heat-set insert.
-- **Wall plug prototype:** adjustable tapered split plug geometry. It has not been tested as a masonry anchor.
+Standardized parametric models mapped to official ISO / DIN / EN standards:
+
+- **Hexagon head bolts & screws:** ISO 4014 / ISO 4017 / DIN 933 (standard hex), EN 1665 / ISO 4162 (flanged hex). Cap face down at Z=0 for support-free 3D printing.
+- **Hexagon socket & countersunk screws:** ISO 4762 (socket head cap), ISO 7380 (button head), ISO 10642 (90° countersunk flat head).
+- **Pan & thumb screws:** ISO 7045 (pan head), DIN 464 (knurled thumb screw).
+- **Drives:** Hex socket (Allen key), Torx / Hexalobular (ISO 14579), Phillips cross-recess, Slotted (ISO 1207), and solid / none.
+- **Nuts:** ISO 4032 / DIN 934 (standard hex), DIN 6923 / ISO 4161 (flanged nut), DIN 985 (prevailing torque lock / Nyloc), DIN 1587 (acorn dome cap nut), DIN 315 (wing nut).
+- **Washers:** ISO 7089 / DIN 125 (standard flat washer), ISO 7093 / DIN 9021 (fender / large OD penny washer).
+- **Rods & studs:** DIN 975 continuous threaded metric rod / stud.
+- **Set screws:** ISO 4026 / DIN 913 headless grub screw with internal socket.
+- **T-slot fasteners:** Drop-in / hammer nut for 2020 (6 mm slot) and 3030 (8 mm slot) aluminum extrusion profiles.
+- **Wood / self-tapping screws:** DIN 571 tapered pointed screw geometry.
+- **Inserts & anchors:** Knurled heat-set insert mock-up and tapered split expansion wall plug.
 
 Open `metric_fastener.scad` in OpenSCAD and use the Customizer panel, or open `index.html` for the browser controls. The browser drawing is illustrative; the OpenSCAD-rendered image above shows the generated geometry.
 
