@@ -156,11 +156,11 @@ module shoulder_screw_model() {
 }
 
 module thumb_screw_model() {
-    wheel_d = max(major_d * 3.6, head_diameter * 1.8);
-    wheel_h = max(2.5, major_d * 0.85);
-    collar_d = max(major_d * 1.8, head_diameter);
-    collar_h = max(1.5, major_d * 0.55);
-    total_h = wheel_h + collar_h;
+    collar_h = min(head_height * 0.45, max(1.2, major_d * 0.55));
+    wheel_h = head_height - collar_h;
+    total_h = head_height;
+    wheel_d = max(head_diameter, major_d * 3.2);
+    collar_d = max(major_d * 1.8, head_diameter * 0.65);
     n_teeth = max(16, round(wheel_d * 2.2));
     translate([0,0,bolt_length+total_h]) rotate([180,0,0]) union() {
         external_threaded_shaft(bolt_length);
@@ -175,8 +175,8 @@ module thumb_screw_model() {
 }
 
 module flat_thumb_screw_model() {
-    wheel_d = max(major_d * 3.2, head_diameter * 1.6);
-    wheel_h = max(1.8, major_d * 0.6);
+    wheel_d = max(head_diameter, major_d * 3.0);
+    wheel_h = head_height;
     n_teeth = max(16, round(wheel_d * 2.2));
     translate([0,0,bolt_length+wheel_h]) rotate([180,0,0]) union() {
         external_threaded_shaft(bolt_length);
@@ -188,14 +188,16 @@ module flat_thumb_screw_model() {
 }
 
 module wing_screw_model() {
-    base_d = max(major_d * 2.0, head_diameter);
-    base_h = max(2.0, major_d * 0.7);
-    wing_h = max(6.0, major_d * 2.5);
+    base_d = max(major_d * 2.0, head_diameter * 0.8);
+    base_h = head_height;
+    wing_span = max(major_d * 4.5, 14);
+    wing_th = max(1.6, major_d * 0.5);
+    wing_h = max(6.0, major_d * 2.2);
     translate([0,0,bolt_length+base_h]) rotate([180,0,0]) union() {
         external_threaded_shaft(bolt_length);
         translate([0,0,bolt_length]) union() {
             cylinder(d=base_d, h=base_h);
-            for(i=[-1,1]) translate([i * base_d * 0.65, 0, wing_h/2]) cube([base_d * 0.45, base_d * 0.25, wing_h], center=true);
+            translate([0,0,base_h/2]) for(i=[-1,1]) translate([i*wing_span*0.28, 0, 0]) cube([wing_span*0.44, wing_th, wing_h], center=true);
         }
     }
 }
@@ -321,11 +323,11 @@ module wing_nut_model() {
     }
 }
 module thumb_nut_model() {
-    wheel_d = max(major_d * 3.6, nut_across_flats * 1.5);
-    wheel_h = max(2.5, major_d * 0.85);
+    collar_h = min(nut_height * 0.45, max(1.2, major_d * 0.55));
+    wheel_h = nut_height - collar_h;
+    tot_h = nut_height;
+    wheel_d = max(nut_across_flats * 1.4, major_d * 3.2);
     collar_d = max(major_d * 1.8, nut_across_flats * 0.9);
-    collar_h = max(1.5, major_d * 0.55);
-    tot_h = wheel_h + collar_h;
     n_teeth = max(16, round(wheel_d * 2.2));
     hex_nut_core(tot_h) union() {
         cylinder(d=collar_d, h=collar_h);
@@ -336,8 +338,8 @@ module thumb_nut_model() {
     }
 }
 module flat_thumb_nut_model() {
-    wheel_d = max(major_d * 3.2, nut_across_flats * 1.4);
-    wheel_h = max(2.0, major_d * 0.65);
+    wheel_d = max(nut_across_flats * 1.4, major_d * 3.0);
+    wheel_h = nut_height;
     n_teeth = max(16, round(wheel_d * 2.2));
     hex_nut_core(wheel_h) union() {
         cylinder(d=wheel_d, h=wheel_h);
@@ -345,7 +347,7 @@ module flat_thumb_nut_model() {
     }
 }
 module square_nut_model() {
-    hex_nut_core(nut_height) cube([nut_across_flats, nut_across_flats, nut_height], center=true);
+    hex_nut_core(nut_height) translate([-nut_across_flats/2, -nut_across_flats/2, 0]) cube([nut_across_flats, nut_across_flats, nut_height]);
 }
 
 // Washers
