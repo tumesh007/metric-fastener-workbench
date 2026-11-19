@@ -955,6 +955,8 @@ function update() {
 
     if (part === 'countersunk_screw' || part === 'csk_tapping_screw') {
       sh += `<polygon points="170,115 270,115 234,170 206,170" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/>`;
+      sh += `<ellipse cx="220" cy="115" rx="50" ry="14" fill="#83b9ae" stroke="#d0f2e9" stroke-width="2"/>`;
+      sh += `<polygon points="220,108 232,112 232,120 220,124 208,120 208,112" fill="#10151d" stroke="#b8e8df"/>`;
     } else if (part === 'hex_bolt' || part === 'wood_hex_screw') {
       sh += `<polygon points="170,115 200,95 240,95 270,115 250,170 190,170" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/>`;
     } else {
@@ -1031,8 +1033,8 @@ function createFastenerTriangles(params) {
   }
 
   const {
-    part = 'socket_cap', size = 'M3', major_d = 3, pitch = 0.5, bolt_length = 16,
-    drive_type = 'hex_drive', tslot_series = 20,
+    part = "socket_cap", size = "M3", major_d = 3, pitch = 0.5, bolt_length = 16,
+    drive_type = "hex_drive", tslot_series = 20,
     head_diameter = 5.5, head_height = 3, drive_size = 2.5, drive_width = 0.7, drive_depth = 1.2,
     nut_across_flats = 5.5, nut_height = 2.4, thread_clearance = 0.2, tapping_pitch = 1.0,
     insert_diameter = 4.6, insert_length = 4.5, insert_flange_diameter = 5.2, insert_flange_height = 0.5,
@@ -1041,66 +1043,151 @@ function createFastenerTriangles(params) {
 
   const minor_d = major_d - 1.08 * pitch;
 
-  function buildDriveRecess(z0, depth) {
-    const cut = Math.min(depth, head_height - 0.2);
-    if (drive_type === 'hex_drive') {
-      const r = drive_size / Math.sqrt(3), N = 6;
-      for (let i = 0; i < N; i++) {
-        const a1 = (i / N) * Math.PI * 2, a2 = ((i + 1) / N) * Math.PI * 2;
-        const x1 = r * Math.cos(a1), y1 = r * Math.sin(a1), x2 = r * Math.cos(a2), y2 = r * Math.sin(a2);
-        addQuad(x1, y1, z0, x1, y1, z0 + cut, x2, y2, z0 + cut, x2, y2, z0);
-        addTri(0, 0, z0 + cut, x1, y1, z0 + cut, x2, y2, z0 + cut);
-      }
-    } else {
-      const w = Math.max(0.6, drive_width), l = drive_size;
-      addQuad(-w/2, -l/2, z0, w/2, -l/2, z0, w/2, l/2, z0, -w/2, l/2, z0);
+  function getDriveRadius(a, maxR) {
+    let r = drive_size / 2;
+    if (drive_type === "hex_drive") {
+      const aMod = ((a + Math.PI / 6) % (Math.PI / 3) + Math.PI / 3) % (Math.PI / 3) - Math.PI / 6;
+      r = (drive_size / 2) / Math.cos(aMod);
+    } else if (drive_type === "slotted") {
+      const hw = Math.max(0.35, drive_width / 2);
+      const hl = Math.max(hw + 0.2, drive_size / 2);
+      const cosA = Math.abs(Math.cos(a)), sinA = Math.abs(Math.sin(a));
+      const rx = cosA > 1e-5 ? hl / cosA : 1e9;
+      const ry = sinA > 1e-5 ? hw / sinA : 1e9;
+      r = Math.min(rx, ry);
+    } else if (drive_type === "phillips") {
+      const hw = Math.max(0.35, drive_width / 2);
+      const hl = Math.max(hw + 0.2, drive_size / 2);
+      const cosA = Math.abs(Math.cos(a)), sinA = Math.abs(Math.sin(a));
+      const r1 = Math.min(cosA > 1e-5 ? hl / cosA : 1e9, sinA > 1e-5 ? hw / sinA : 1e9);
+      const r2 = Math.min(cosA > 1e-5 ? hw / cosA : 1e9, sinA > 1e-5 ? hl / sinA : 1e9);
+      r = Math.max(r1, r2);
+    } else if (drive_type === "torx") {
+      r = (drive_size / 2) * (0.80 + 0.20 * Math.cos(6 * a));
     }
+    return Math.min(Math.max(0.2, r), maxR);
   }
 
-  // Returns { baseR, basePolygon } representing the bottom cross-section of the head at z = head_height
+  function emitRecessedHead(z0, z1, R_top, R_bot, cut) {
+    const N = 36;
+    const hasDrive = drive_type !== "none" && cut > 0.05;
+    for (let i = 0; i < N; i++) {
+      const next = (i + 1) % N;
+      const a1 = (i / N) * Math.PI * 2, a2 = (next / N) * Math.PI * 2;
+      const x1_top = R_top * Math.cos(a1), y1_top = R_top * Math.sin(a1);
+      const x2_top = R_top * Math.cos(a2), y2_top = R_top * Math.sin(a2);
+      const x1_bot = R_bot * Math.cos(a1), y1_bot = R_bot * Math.sin(a1);
+      const x2_bot = R_bot * Math.cos(a2), y2_bot = R_bot * Math.sin(a2);
+
+      // Outer side wall: z0 to z1
+      addQuad(x1_top, y1_top, z0, x2_top, y2_top, z0, x2_bot, y2_bot, z1, x1_bot, y1_bot, z1);
+
+      if (!hasDrive) {
+        addTri(0, 0, z0, x2_top, y2_top, z0, x1_top, y1_top, z0);
+      } else {
+        const r1 = getDriveRadius(a1, R_top - 0.25);
+        const r2 = getDriveRadius(a2, R_top - 0.25);
+        const ix1 = r1 * Math.cos(a1), iy1 = r1 * Math.sin(a1);
+        const ix2 = r2 * Math.cos(a2), iy2 = r2 * Math.sin(a2);
+
+        // Top annular ring: z0
+        addQuad(ix1, iy1, z0, ix2, iy2, z0, x2_top, y2_top, z0, x1_top, y1_top, z0);
+
+        // Vertical recess wall: z0 to z0 + cut
+        addQuad(ix2, iy2, z0, ix1, iy1, z0, ix1, iy1, z0 + cut, ix2, iy2, z0 + cut);
+
+        // Recess floor: z0 + cut
+        addTri(0, 0, z0 + cut, ix2, iy2, z0 + cut, ix1, iy1, z0 + cut);
+      }
+    }
+    return { baseR: R_bot, basePolygon: null };
+  }
+
   function buildHead(z0, z1, style) {
     const h = z1 - z0, cut = Math.min(drive_depth, h - 0.2);
 
-    if (['hex_bolt', 'wood_hex_screw'].includes(style)) {
-      const R_hex = head_diameter / Math.sqrt(3), N = 6;
-      const poly = [];
+    if (["hex_bolt", "wood_hex_screw"].includes(style)) {
+      const N = 36;
+      function getHexR(idx) {
+        const a = (idx / N) * Math.PI * 2;
+        const aMod = ((a + Math.PI / 6) % (Math.PI / 3) + Math.PI / 3) % (Math.PI / 3) - Math.PI / 6;
+        return (head_diameter / 2) / Math.cos(aMod);
+      }
       for (let i = 0; i < N; i++) {
-        const a1 = (i / N) * Math.PI * 2, a2 = ((i + 1) / N) * Math.PI * 2;
-        const x1 = R_hex * Math.cos(a1), y1 = R_hex * Math.sin(a1), x2 = R_hex * Math.cos(a2), y2 = R_hex * Math.sin(a2);
+        const next = (i + 1) % N;
+        const a1 = (i / N) * Math.PI * 2, a2 = (next / N) * Math.PI * 2;
+        const r1 = getHexR(i), r2 = getHexR(next);
+        const x1 = r1 * Math.cos(a1), y1 = r1 * Math.sin(a1);
+        const x2 = r2 * Math.cos(a2), y2 = r2 * Math.sin(a2);
         addQuad(x1, y1, z0, x2, y2, z0, x2, y2, z1, x1, y1, z1);
         addTri(0, 0, z0, x2, y2, z0, x1, y1, z0);
-        poly.push([x1, y1]);
       }
-      return { baseR: head_diameter / 2, basePolygon: poly };
+      return { baseR: head_diameter / 2, baseRFunc: (idx) => getHexR(idx) };
 
-    } else if (style === 'hex_flange_bolt') {
-      const R_hex = head_diameter / Math.sqrt(3), R_fl = (head_diameter * 1.32) / 2, h_fl = Math.max(0.6, h * 0.25), N = 36;
+    } else if (style === "hex_flange_bolt") {
+      const fl_h = Math.max(0.5, h * 0.25);
+      const z_step = z1 - fl_h;
+      const R_fl = (head_diameter * 1.32) / 2;
+      const N = 36;
+      function getHexR(idx) {
+        const a = (idx / N) * Math.PI * 2;
+        const aMod = ((a + Math.PI / 6) % (Math.PI / 3) + Math.PI / 3) % (Math.PI / 3) - Math.PI / 6;
+        return (head_diameter / 2) / Math.cos(aMod);
+      }
       for (let i = 0; i < N; i++) {
-        const a1 = (i / N) * Math.PI * 2, a2 = ((i + 1) / N) * Math.PI * 2;
-        addQuad(R_fl*Math.cos(a1), R_fl*Math.sin(a1), z0, R_fl*Math.cos(a2), R_fl*Math.sin(a2), z0, R_fl*Math.cos(a2), R_fl*Math.sin(a2), z0+h_fl, R_fl*Math.cos(a1), R_fl*Math.sin(a1), z0+h_fl);
-        addTri(0, 0, z0, R_fl*Math.cos(a2), R_fl*Math.sin(a2), z0, R_fl*Math.cos(a1), R_fl*Math.sin(a1), z0);
-      }
-      const poly = [];
-      for (let i = 0; i < 6; i++) {
-        const a1 = (i / 6) * Math.PI * 2, a2 = ((i + 1) / 6) * Math.PI * 2;
-        const x1 = R_hex*Math.cos(a1), y1 = R_hex*Math.sin(a1), x2 = R_hex*Math.cos(a2), y2 = R_hex*Math.sin(a2);
-        addQuad(x1, y1, z0+h_fl, x2, y2, z0+h_fl, x2, y2, z1, x1, y1, z1);
-        poly.push([x1, y1]);
-      }
-      return { baseR: head_diameter / 2, basePolygon: poly };
+        const next = (i + 1) % N;
+        const a1 = (i / N) * Math.PI * 2, a2 = (next / N) * Math.PI * 2;
+        const r1 = getHexR(i), r2 = getHexR(next);
+        const x1_hex = r1 * Math.cos(a1), y1_hex = r1 * Math.sin(a1);
+        const x2_hex = r2 * Math.cos(a2), y2_hex = r2 * Math.sin(a2);
+        const x1_fl = R_fl * Math.cos(a1), y1_fl = R_fl * Math.sin(a1);
+        const x2_fl = R_fl * Math.cos(a2), y2_fl = R_fl * Math.sin(a2);
 
-    } else if (['countersunk_screw', 'csk_tapping_screw'].includes(style)) {
-      const R_top = head_diameter / 2, R_bot = major_d / 2, N = 36;
+        addTri(0, 0, z0, x2_hex, y2_hex, z0, x1_hex, y1_hex, z0);
+        addQuad(x1_hex, y1_hex, z0, x2_hex, y2_hex, z0, x2_hex, y2_hex, z_step, x1_hex, y1_hex, z_step);
+        addQuad(x1_hex, y1_hex, z_step, x2_hex, y2_hex, z_step, x2_fl, y2_fl, z_step, x1_fl, y1_fl, z_step);
+        addQuad(x1_fl, y1_fl, z_step, x2_fl, y2_fl, z_step, x2_fl, y2_fl, z1, x1_fl, y1_fl, z1);
+      }
+      return { baseR: R_fl, basePolygon: null };
+
+    } else if (style === "button_flange") {
+      const fl_h = Math.max(0.4, h * 0.22);
+      const z_step = z1 - fl_h;
+      const R_top = head_diameter / 2;
+      const R_fl = (head_diameter * 1.35) / 2;
+      const N = 36;
+      const hasDrive = drive_type !== "none" && cut > 0.05;
       for (let i = 0; i < N; i++) {
-        const a1 = (i / N) * Math.PI * 2, a2 = ((i + 1) / N) * Math.PI * 2;
-        addQuad(R_top*Math.cos(a1), R_top*Math.sin(a1), z0, R_top*Math.cos(a2), R_top*Math.sin(a2), z0, R_bot*Math.cos(a2), R_bot*Math.sin(a2), z1, R_bot*Math.cos(a1), R_bot*Math.sin(a1), z1);
-        addTri(0, 0, z0, R_top*Math.cos(a2), R_top*Math.sin(a2), z0, R_top*Math.cos(a1), R_top*Math.sin(a1), z0);
-      }
-      if (drive_type !== 'none') buildDriveRecess(z0, cut);
-      return { baseR: R_bot, basePolygon: null, isFlush: true };
+        const next = (i + 1) % N;
+        const a1 = (i / N) * Math.PI * 2, a2 = (next / N) * Math.PI * 2;
+        const x1_top = R_top * Math.cos(a1), y1_top = R_top * Math.sin(a1);
+        const x2_top = R_top * Math.cos(a2), y2_top = R_top * Math.sin(a2);
+        const x1_fl = R_fl * Math.cos(a1), y1_fl = R_fl * Math.sin(a1);
+        const x2_fl = R_fl * Math.cos(a2), y2_fl = R_fl * Math.sin(a2);
 
-    } else if (style === 'flat_thumb_screw') {
-      // DIN 653: flat knurled wheel with deep prominent knurl teeth, spans full head_height z0 to z1 without gap!
+        addQuad(x1_top, y1_top, z0, x2_top, y2_top, z0, x2_top, y2_top, z_step, x1_top, y1_top, z_step);
+        addQuad(x1_top, y1_top, z_step, x2_top, y2_top, z_step, x2_fl, y2_fl, z_step, x1_fl, y1_fl, z_step);
+        addQuad(x1_fl, y1_fl, z_step, x2_fl, y2_fl, z_step, x2_fl, y2_fl, z1, x1_fl, y1_fl, z1);
+
+        if (!hasDrive) {
+          addTri(0, 0, z0, x2_top, y2_top, z0, x1_top, y1_top, z0);
+        } else {
+          const r1 = getDriveRadius(a1, R_top - 0.25);
+          const r2 = getDriveRadius(a2, R_top - 0.25);
+          const ix1 = r1 * Math.cos(a1), iy1 = r1 * Math.sin(a1);
+          const ix2 = r2 * Math.cos(a2), iy2 = r2 * Math.sin(a2);
+
+          addQuad(ix1, iy1, z0, ix2, iy2, z0, x2_top, y2_top, z0, x1_top, y1_top, z0);
+          addQuad(ix2, iy2, z0, ix1, iy1, z0, ix1, iy1, z0 + cut, ix2, iy2, z0 + cut);
+          addTri(0, 0, z0 + cut, ix2, iy2, z0 + cut, ix1, iy1, z0 + cut);
+        }
+      }
+      return { baseR: R_fl, basePolygon: null };
+
+    } else if (["countersunk_screw", "csk_tapping_screw"].includes(style)) {
+      return emitRecessedHead(z0, z1, head_diameter / 2, major_d / 2, cut);
+
+    } else if (style === "flat_thumb_screw") {
       const R_wheel = Math.max(head_diameter, major_d * 3.0) / 2;
       const tooth_depth = Math.max(1.2, major_d * 0.28);
       const N = 36;
@@ -1111,14 +1198,12 @@ function createFastenerTriangles(params) {
         const r1 = getRk(i), r2 = getRk(next);
         const x1 = r1 * Math.cos(a1), y1 = r1 * Math.sin(a1);
         const x2 = r2 * Math.cos(a2), y2 = r2 * Math.sin(a2);
-        // Knurled perimeter wall
         addQuad(x1, y1, z0, x2, y2, z0, x2, y2, z1, x1, y1, z1);
-        // Flat bottom cap
         addTri(0, 0, z0, x2, y2, z0, x1, y1, z0);
       }
       return { baseR: R_wheel, baseRFunc: (idx) => getRk(idx) };
-    } else if (style === 'thumb_screw') {
-      // DIN 464: deep knurled wheel + collar, total spans exactly z0 to z1 without gap!
+
+    } else if (style === "thumb_screw") {
       const collar_h = Math.min(h * 0.45, Math.max(1.2, major_d * 0.55));
       const wheel_h = h - collar_h;
       const R_wheel = Math.max(head_diameter, major_d * 3.2) / 2;
@@ -1132,20 +1217,16 @@ function createFastenerTriangles(params) {
         const r1 = getRk(i), r2 = getRk(next);
         const x1 = r1 * Math.cos(a1), y1 = r1 * Math.sin(a1);
         const x2 = r2 * Math.cos(a2), y2 = r2 * Math.sin(a2);
-        // Knurled wheel side
         addQuad(x1, y1, z0, x2, y2, z0, x2, y2, z0+wheel_h, x1, y1, z0+wheel_h);
-        // Bottom cap
         addTri(0, 0, z0, x2, y2, z0, x1, y1, z0);
-        // Step from knurled wheel down to collar
         const cx1 = R_col * Math.cos(a1), cy1 = R_col * Math.sin(a1);
         const cx2 = R_col * Math.cos(a2), cy2 = R_col * Math.sin(a2);
         addQuad(cx1, cy1, z0+wheel_h, cx2, cy2, z0+wheel_h, x2, y2, z0+wheel_h, x1, y1, z0+wheel_h);
-        // Collar side
         addQuad(cx1, cy1, z0+wheel_h, cx2, cy2, z0+wheel_h, cx2, cy2, z1, cx1, cy1, z1);
       }
       return { baseR: R_col, basePolygon: null };
-    } else if (style === 'oval_wing_screw') {
-      // Ergonomic oval wing screw: continuous thick elliptical arch for 3D printing shear strength
+
+    } else if (style === "oval_wing_screw") {
       const span = Math.max(major_d * 5.2, 20);
       const th = Math.max(major_d * 0.9, 4.0);
       const R_hub = Math.max(major_d * 1.2, head_diameter * 0.55);
@@ -1161,15 +1242,12 @@ function createFastenerTriangles(params) {
         const r1 = getOvalR(i), r2 = getOvalR(next);
         const x1 = r1 * Math.cos(a1), y1 = r1 * Math.sin(a1);
         const x2 = r2 * Math.cos(a2), y2 = r2 * Math.sin(a2);
-        // Outer side wall of oval wing
         addQuad(x1, y1, z0, x2, y2, z0, x2, y2, z1, x1, y1, z1);
-        // Top cap
         addTri(0, 0, z0, x2, y2, z0, x1, y1, z0);
       }
       return { baseR: R_hub, baseRFunc: (idx) => getOvalR(idx) };
 
-    } else if (style === 'wing_screw') {
-      // DIN 316: unified single-manifold star-convex contour (zero internal intersecting faces, 100% solid fill)
+    } else if (style === "wing_screw") {
       const R_hub = Math.max(major_d * 2.0, head_diameter * 0.8) / 2;
       const wing_span = Math.max(major_d * 4.6, 16), wing_th = Math.max(2.2, major_d * 0.6);
       const hw = wing_span / 2, ht = wing_th / 2, N = 36;
@@ -1188,29 +1266,13 @@ function createFastenerTriangles(params) {
         const r1 = getWingR(i), r2 = getWingR(next);
         const x1 = r1 * Math.cos(a1), y1 = r1 * Math.sin(a1);
         const x2 = r2 * Math.cos(a2), y2 = r2 * Math.sin(a2);
-        // Unified side wall
         addQuad(x1, y1, z0, x2, y2, z0, x2, y2, z1, x1, y1, z1);
-        // Flat bed cap at z0
         addTri(0, 0, z0, x2, y2, z0, x1, y1, z0);
       }
       return { baseR: R_hub, baseRFunc: (idx) => getWingR(idx) };
 
     } else {
-      // socket cap, button, pan, shoulder
-      const R = head_diameter / 2, N = 36, r_rec = drive_size / Math.sqrt(3);
-      for (let i = 0; i < N; i++) {
-        const a1 = (i / N) * Math.PI * 2, a2 = ((i + 1) / N) * Math.PI * 2;
-        const x1 = R * Math.cos(a1), y1 = R * Math.sin(a1), x2 = R * Math.cos(a2), y2 = R * Math.sin(a2);
-        addQuad(x1, y1, z0, x2, y2, z0, x2, y2, z1, x1, y1, z1);
-        const ix1 = r_rec * Math.cos(a1), iy1 = r_rec * Math.sin(a1), ix2 = r_rec * Math.cos(a2), iy2 = r_rec * Math.sin(a2);
-        if (drive_type === 'hex_drive') {
-          addQuad(ix1, iy1, z0, ix2, iy2, z0, x2, y2, z0, x1, y1, z0);
-        } else {
-          addTri(0, 0, z0, x2, y2, z0, x1, y1, z0);
-        }
-      }
-      if (drive_type === 'hex_drive') buildDriveRecess(z0, cut);
-      return { baseR: R, basePolygon: null };
+      return emitRecessedHead(z0, z1, head_diameter / 2, head_diameter / 2, cut);
     }
   }
 
@@ -1254,27 +1316,69 @@ function createFastenerTriangles(params) {
 
     // Top tip cap
     const zTop = zStart + len;
-    for (let i = 0; i < N_rad; i++) {
-      const next = (i + 1) % N_rad;
-      const u0 = (i / N_rad) * Math.PI * 2, u1 = (next === 0) ? 0 : (next / N_rad) * Math.PI * 2;
-      addTri(0, 0, zTop, getR(u0, len) * Math.cos(u0), getR(u0, len) * Math.sin(u0), zTop, getR(u1, len) * Math.cos(u1), getR(u1, len) * Math.sin(u1), zTop);
+    if (headInfo && headInfo.isConeTip) {
+      const cone_len = Math.max(1.0, major_d * 0.4);
+      for (let i = 0; i < N_rad; i++) {
+        const next = (i + 1) % N_rad;
+        const u0 = (i / N_rad) * Math.PI * 2, u1 = (next === 0) ? 0 : (next / N_rad) * Math.PI * 2;
+        addTri(0, 0, zTop + cone_len, getR(u0, len) * Math.cos(u0), getR(u0, len) * Math.sin(u0), zTop, getR(u1, len) * Math.cos(u1), getR(u1, len) * Math.sin(u1), zTop);
+      }
+    } else {
+      for (let i = 0; i < N_rad; i++) {
+        const next = (i + 1) % N_rad;
+        const u0 = (i / N_rad) * Math.PI * 2, u1 = (next === 0) ? 0 : (next / N_rad) * Math.PI * 2;
+        addTri(0, 0, zTop, getR(u0, len) * Math.cos(u0), getR(u0, len) * Math.sin(u0), zTop, getR(u1, len) * Math.cos(u1), getR(u1, len) * Math.sin(u1), zTop);
+      }
     }
 
-    // Annular shoulder at zStart connecting head to shaft
-    if (headInfo && !headInfo.isFlush) {
+    // Connecting shoulder or set screw recess at zStart
+    if (headInfo && headInfo.isSetScrew) {
+      const cut = Math.min(drive_depth, len * 0.4);
+      for (let i = 0; i < N_rad; i++) {
+        const next = (i + 1) % N_rad;
+        const u0 = (i / N_rad) * Math.PI * 2, u1 = (next / N_rad) * Math.PI * 2;
+        const r0 = getDriveRadius(u0, root_r - 0.15);
+        const r1 = getDriveRadius(u1, root_r - 0.15);
+        const R0 = getR(u0, 0), R1 = getR(u1, 0);
+
+        addQuad(r0*Math.cos(u0), r0*Math.sin(u0), zStart,
+                r1*Math.cos(u1), r1*Math.sin(u1), zStart,
+                R1*Math.cos(u1), R1*Math.sin(u1), zStart,
+                R0*Math.cos(u0), R0*Math.sin(u0), zStart);
+        addQuad(r1*Math.cos(u1), r1*Math.sin(u1), zStart,
+                r0*Math.cos(u0), r0*Math.sin(u0), zStart,
+                r0*Math.cos(u0), r0*Math.sin(u0), zStart + cut,
+                r1*Math.cos(u1), r1*Math.sin(u1), zStart + cut);
+        addTri(0, 0, zStart + cut,
+               r1*Math.cos(u1), r1*Math.sin(u1), zStart + cut,
+               r0*Math.cos(u0), r0*Math.sin(u0), zStart + cut);
+      }
+    } else if (headInfo && !headInfo.isFlush) {
       const hR = headInfo.baseR;
       for (let i = 0; i < N_rad; i++) {
         const next = (i + 1) % N_rad;
         const u0 = (i / N_rad) * Math.PI * 2, u1 = (next / N_rad) * Math.PI * 2;
         const rk0 = headInfo.baseRFunc ? headInfo.baseRFunc(i) : hR;
         const rk1 = headInfo.baseRFunc ? headInfo.baseRFunc(next) : hR;
-        addQuad(getR(u0, 0) * Math.cos(u0), getR(u0, 0) * Math.sin(u0), zStart,
-                rk0 * Math.cos(u0), rk0 * Math.sin(u0), zStart,
-                rk1 * Math.cos(u1), rk1 * Math.sin(u1), zStart,
-                getR(u1, 0) * Math.cos(u1), getR(u1, 0) * Math.sin(u1), zStart);
+        const r_in0 = getR(u0, 0), r_in1 = getR(u1, 0);
+        const diff0 = rk0 - r_in0, diff1 = rk1 - r_in1;
+        if (diff0 > 1e-4 && diff1 > 1e-4) {
+          addQuad(r_in0 * Math.cos(u0), r_in0 * Math.sin(u0), zStart,
+                  rk0 * Math.cos(u0), rk0 * Math.sin(u0), zStart,
+                  rk1 * Math.cos(u1), rk1 * Math.sin(u1), zStart,
+                  r_in1 * Math.cos(u1), r_in1 * Math.sin(u1), zStart);
+        } else if (diff0 > 1e-4) {
+          addTri(r_in0 * Math.cos(u0), r_in0 * Math.sin(u0), zStart,
+                 rk0 * Math.cos(u0), rk0 * Math.sin(u0), zStart,
+                 r_in1 * Math.cos(u1), r_in1 * Math.sin(u1), zStart);
+        } else if (diff1 > 1e-4) {
+          addTri(r_in0 * Math.cos(u0), r_in0 * Math.sin(u0), zStart,
+                 rk1 * Math.cos(u1), rk1 * Math.sin(u1), zStart,
+                 r_in1 * Math.cos(u1), r_in1 * Math.sin(u1), zStart);
+        }
       }
     } else if (!headInfo) {
-      // Headless stud / set screw bottom cap
+      // Headless stud (threaded_rod) bottom cap
       for (let i = 0; i < N_rad; i++) {
         const u0 = (i / N_rad) * Math.PI * 2, u1 = ((i + 1) / N_rad) * Math.PI * 2;
         addTri(0, 0, zStart, getR(u1, 0) * Math.cos(u1), getR(u1, 0) * Math.sin(u1), zStart, getR(u0, 0) * Math.cos(u0), getR(u0, 0) * Math.sin(u0), zStart);
@@ -1283,8 +1387,8 @@ function createFastenerTriangles(params) {
   }
 
   // Routing
-  const isScrewOrBolt = ['socket_cap', 'hex_bolt', 'hex_flange_bolt', 'button_head', 'button_flange', 'countersunk_screw', 'pan_head', 'shoulder_screw', 'thumb_screw', 'flat_thumb_screw', 'wing_screw', 'oval_wing_screw'].includes(part);
-  const isTapping = ['wood_hex_screw', 'tapping_screw', 'csk_tapping_screw'].includes(part);
+  const isScrewOrBolt = ["socket_cap", "hex_bolt", "hex_flange_bolt", "button_head", "button_flange", "countersunk_screw", "pan_head", "shoulder_screw", "thumb_screw", "flat_thumb_screw", "wing_screw", "oval_wing_screw"].includes(part);
+  const isTapping = ["wood_hex_screw", "tapping_screw", "csk_tapping_screw"].includes(part);
 
   if (isScrewOrBolt) {
     const headInfo = buildHead(0, head_height, part);
@@ -1293,13 +1397,14 @@ function createFastenerTriangles(params) {
     const headInfo = buildHead(0, head_height, part);
     const tap_root = Math.max(0.25, major_d - 0.95 * tapping_pitch);
     buildThreadedShaft(head_height, bolt_length, major_d, tap_root, tapping_pitch, true, headInfo);
-  } else if (part === 'threaded_rod') {
+  } else if (part === "threaded_rod") {
     buildThreadedShaft(0, bolt_length, major_d, minor_d, pitch, false, null);
-  } else if (part.startsWith('set_screw')) {
-    buildThreadedShaft(0, bolt_length, major_d, minor_d, pitch, false, null);
-    buildDriveRecess(0, Math.min(drive_depth, bolt_length * 0.4));
-  } else if (part.includes('washer')) {
-    const isFender = part === 'fender_washer';
+  } else if (part === "set_screw_flat") {
+    buildThreadedShaft(0, bolt_length, major_d, minor_d, pitch, false, { isSetScrew: true, isConeTip: false });
+  } else if (part === "set_screw_cone") {
+    buildThreadedShaft(0, bolt_length, major_d, minor_d, pitch, false, { isSetScrew: true, isConeTip: true });
+  } else if (part.includes("washer")) {
+    const isFender = part === "fender_washer";
     const R_in = (major_d + 0.35) / 2;
     const R_out = (isFender ? Math.max(major_d * 3.2, major_d + 6) : Math.max(major_d * 2.2, major_d + 3.5)) / 2;
     const th = isFender ? Math.max(0.8, major_d * 0.25) : Math.max(0.5, major_d * 0.18);
@@ -1311,7 +1416,7 @@ function createFastenerTriangles(params) {
       addQuad(R_in*Math.cos(a1), R_in*Math.sin(a1), 0, R_in*Math.cos(a2), R_in*Math.sin(a2), 0, R_out*Math.cos(a2), R_out*Math.sin(a2), 0, R_out*Math.cos(a1), R_out*Math.sin(a1), 0);
       addQuad(R_in*Math.cos(a1), R_in*Math.sin(a1), th, R_out*Math.cos(a1), R_out*Math.sin(a1), th, R_out*Math.cos(a2), R_out*Math.sin(a2), th, R_in*Math.cos(a2), R_in*Math.sin(a2), th);
     }
-  } else if (part === 'tslot_nut') {
+  } else if (part === "tslot_nut") {
     const slot_w = tslot_series === 30 ? 8 : 6, nut_w = tslot_series === 30 ? 14 : 10;
     const nut_l = tslot_series === 30 ? 16 : 11.5, nut_h = tslot_series === 30 ? 5 : 4;
     const hl = nut_l / 2, hw = nut_w / 2;
@@ -1321,8 +1426,7 @@ function createFastenerTriangles(params) {
     addQuad(hl, hw, 0, hl, hw, nut_h, -hl, hw, nut_h, -hl, hw, 0);
     addQuad(-hl, hw, 0, -hl, hw, nut_h, -hl, -hw, nut_h, -hl, -hw, 0);
     addQuad(hl, -hw, 0, hl, -hw, nut_h, hl, hw, nut_h, hl, hw, 0);
-  } else if (part === 'flat_thumb_nut') {
-    // DIN 467: flat knurled wheel with threaded bore and deep prominent knurling
+  } else if (part === "flat_thumb_nut") {
     const R_wheel = Math.max(major_d * 3.0, nut_across_flats * 1.4) / 2;
     const tooth_depth = Math.max(1.2, major_d * 0.28);
     const n_teeth = Math.max(18, Math.round(R_wheel * 2 * 1.4));
@@ -1342,8 +1446,7 @@ function createFastenerTriangles(params) {
       addQuad(bx1, by1, 0, bx2, by2, 0, x2, y2, 0, x1, y1, 0);
       addQuad(bx1, by1, nut_height, x1, y1, nut_height, x2, y2, nut_height, bx2, by2, nut_height);
     }
-  } else if (part === 'thumb_nut') {
-    // DIN 466: collar + knurled wheel with threaded bore and deep prominent knurling
+  } else if (part === "thumb_nut") {
     const collar_h = Math.min(nut_height * 0.45, Math.max(1.2, major_d * 0.55));
     const wheel_h = nut_height - collar_h;
     const R_wheel = Math.max(major_d * 3.2, nut_across_flats * 1.4) / 2;
@@ -1370,32 +1473,37 @@ function createFastenerTriangles(params) {
       addQuad(bx1, by1, 0, bx2, by2, 0, cx2, cy2, 0, cx1, cy1, 0);
       addQuad(bx1, by1, nut_height, x1, y1, nut_height, x2, y2, nut_height, bx2, by2, nut_height);
     }
-  } else if (part === 'square_nut') {
-    const hw = nut_across_flats / 2, R_bore = (minor_d + 2 * thread_clearance) / 2, N = 36;
-    // Outer box
-    addQuad(-hw, -hw, 0, hw, -hw, 0, hw, -hw, nut_height, -hw, -hw, nut_height);
-    addQuad(hw, -hw, 0, hw, hw, 0, hw, hw, nut_height, hw, -hw, nut_height);
-    addQuad(hw, hw, 0, -hw, hw, 0, -hw, hw, nut_height, hw, hw, nut_height);
-    addQuad(-hw, hw, 0, -hw, -hw, 0, -hw, -hw, nut_height, -hw, hw, nut_height);
-    // Inner bore
-    for (let i = 0; i < N; i++) {
-      const a1 = (i / N) * Math.PI * 2, a2 = ((i + 1) / N) * Math.PI * 2;
-      addQuad(R_bore*Math.cos(a1), R_bore*Math.sin(a1), 0, R_bore*Math.cos(a1), R_bore*Math.sin(a1), nut_height, R_bore*Math.cos(a2), R_bore*Math.sin(a2), nut_height, R_bore*Math.cos(a2), R_bore*Math.sin(a2), 0);
-      // Bottom and top annular caps to bounding square
-      const sgnX = Math.sign(Math.cos(a1)) || 1, sgnY = Math.sign(Math.sin(a1)) || 1;
-      const ox1 = Math.max(-hw, Math.min(hw, hw * Math.SQRT2 * Math.cos(a1))), oy1 = Math.max(-hw, Math.min(hw, hw * Math.SQRT2 * Math.sin(a1)));
-      const ox2 = Math.max(-hw, Math.min(hw, hw * Math.SQRT2 * Math.cos(a2))), oy2 = Math.max(-hw, Math.min(hw, hw * Math.SQRT2 * Math.sin(a2)));
-      addQuad(R_bore*Math.cos(a1), R_bore*Math.sin(a1), 0, R_bore*Math.cos(a2), R_bore*Math.sin(a2), 0, ox2, oy2, 0, ox1, oy1, 0);
-      addQuad(R_bore*Math.cos(a1), R_bore*Math.sin(a1), nut_height, ox1, oy1, nut_height, ox2, oy2, nut_height, R_bore*Math.cos(a2), R_bore*Math.sin(a2), nut_height);
+  } else if (part === "square_nut") {
+    const hw = nut_across_flats / 2, R_bore = (minor_d + 2 * thread_clearance) / 2;
+    const corners = [[-hw, -hw], [hw, -hw], [hw, hw], [-hw, hw]];
+    const outer = [];
+    for (let s = 0; s < 4; s++) {
+      const c1 = corners[s], c2 = corners[(s + 1) % 4];
+      for (let k = 0; k < 9; k++) {
+        const t = k / 9;
+        outer.push([c1[0] + (c2[0] - c1[0]) * t, c1[1] + (c2[1] - c1[1]) * t]);
+      }
     }
-  } else if (part.includes('nut')) {
-    // Hex nuts (standard, jam, flange, nyloc, acorn, wing)
-    const isJam = part === 'jam_nut';
+    const N = 36;
+    for (let i = 0; i < N; i++) {
+      const next = (i + 1) % N;
+      const a1 = (i / N) * Math.PI * 2, a2 = (next / N) * Math.PI * 2;
+      const ox1 = outer[i][0], oy1 = outer[i][1];
+      const ox2 = outer[next][0], oy2 = outer[next][1];
+      const bx1 = R_bore * Math.cos(a1), by1 = R_bore * Math.sin(a1);
+      const bx2 = R_bore * Math.cos(a2), by2 = R_bore * Math.sin(a2);
+
+      addQuad(ox1, oy1, 0, ox2, oy2, 0, ox2, oy2, nut_height, ox1, oy1, nut_height);
+      addQuad(bx1, by1, 0, bx1, by1, nut_height, bx2, by2, nut_height, bx2, by2, 0);
+      addQuad(bx1, by1, 0, bx2, by2, 0, ox2, oy2, 0, ox1, oy1, 0);
+      addQuad(bx1, by1, nut_height, ox1, oy1, nut_height, ox2, oy2, nut_height, bx2, by2, nut_height);
+    }
+  } else if (part.includes("nut")) {
+    const isJam = part === "jam_nut";
     const effH = isJam ? Math.max(1.2, nut_height * 0.55) : nut_height;
     const R_out = nut_across_flats / Math.sqrt(3), R_bore = (minor_d + 2 * thread_clearance) / 2;
     const N = 36;
 
-    // Resample 6-sided hex to 36 outer points
     const outer = [];
     for (let s = 0; s < 6; s++) {
       const a1 = (s / 6) * Math.PI * 2, a2 = ((s + 1) / 6) * Math.PI * 2;
@@ -1412,38 +1520,35 @@ function createFastenerTriangles(params) {
       const a1 = (i / N) * Math.PI * 2, a2 = (next / N) * Math.PI * 2;
       const bx0 = R_bore * Math.cos(a1), by0 = R_bore * Math.sin(a1), bx1 = R_bore * Math.cos(a2), by1 = R_bore * Math.sin(a2);
 
-      // Outer hex side
       addQuad(X0, Y0, 0, X1, Y1, 0, X1, Y1, effH, X0, Y0, effH);
-      // Inner bore
       addQuad(bx1, by1, 0, bx0, by0, 0, bx0, by0, effH, bx1, by1, effH);
-      // Bottom cap
       addQuad(X0, Y0, 0, bx0, by0, 0, bx1, by1, 0, X1, Y1, 0);
-      // Top cap
-      if (part !== 'acorn_nut') {
+
+      if (part !== "acorn_nut") {
         addQuad(X1, Y1, effH, bx1, by1, effH, bx0, by0, effH, X0, Y0, effH);
+      } else {
+        addTri(0, 0, effH, bx0, by0, effH, bx1, by1, effH);
       }
     }
 
-    if (part === 'acorn_nut') {
+    if (part === "acorn_nut") {
       const dom_h = nut_across_flats * 0.45;
       for (let i = 0; i < N; i++) {
         const next = (i + 1) % N;
         const [X0, Y0] = outer[i], [X1, Y1] = outer[next];
         addTri(0, 0, effH + dom_h, X0, Y0, effH, X1, Y1, effH);
       }
-    } else if (part === 'wing_nut') {
-      // Two separate solid wing blades rooted in the outer flats of the nut body (clear of threaded bore)
+    } else if (part === "wing_nut") {
       const wing_span = Math.max(major_d * 4.6, 16), wing_th = Math.max(2.2, major_d * 0.6), wing_h = Math.max(7.0, nut_across_flats * 1.3);
       const hw = wing_span / 2, ht = wing_th / 2;
       const rootX = nut_across_flats * 0.42;
-      // Right wing blade [rootX to hw]
       addQuad(rootX, -ht, 0, hw, -ht, 0, hw, ht, 0, rootX, ht, 0);
       addQuad(rootX, -ht, wing_h, rootX, ht, wing_h, hw, ht, wing_h, hw, -ht, wing_h);
       addQuad(rootX, -ht, 0, rootX, -ht, wing_h, hw, -ht, wing_h, hw, -ht, 0);
       addQuad(hw, ht, 0, hw, ht, wing_h, rootX, ht, wing_h, rootX, ht, 0);
       addQuad(rootX, ht, 0, rootX, ht, wing_h, rootX, -ht, wing_h, rootX, -ht, 0);
       addQuad(hw, -ht, 0, hw, -ht, wing_h, hw, ht, wing_h, hw, ht, 0);
-      // Left wing blade [-hw to -rootX]
+
       addQuad(-hw, -ht, 0, -rootX, -ht, 0, -rootX, ht, 0, -hw, ht, 0);
       addQuad(-hw, -ht, wing_h, -hw, ht, wing_h, -rootX, ht, wing_h, -rootX, -ht, wing_h);
       addQuad(-hw, -ht, 0, -hw, -ht, wing_h, -rootX, -ht, wing_h, -rootX, -ht, 0);
@@ -1451,18 +1556,48 @@ function createFastenerTriangles(params) {
       addQuad(-hw, ht, 0, -hw, ht, wing_h, -hw, -ht, wing_h, -hw, -ht, 0);
       addQuad(-rootX, -ht, 0, -rootX, -ht, wing_h, -rootX, ht, wing_h, -rootX, ht, 0);
     }
-  } else if (part === 'heat_set_insert') {
-    const R_b = insert_diameter / 2, R_fl = insert_flange_diameter > 0 ? insert_flange_diameter / 2 : R_b, R_in = (minor_d + 2 * thread_clearance) / 2, N = 36;
+  } else if (part === "heat_set_insert") {
+    const R_b = insert_diameter / 2;
+    const R_fl = Math.max(R_b + 0.35, insert_flange_diameter / 2);
+    const R_in = (minor_d + 2 * thread_clearance) / 2, N = 36;
+    function getKnurlR(i) { return (i % 2 === 1) ? R_b + 0.20 : R_b; }
+
     for (let i = 0; i < N; i++) {
-      const u0 = (i / N) * Math.PI * 2, u1 = ((i + 1) / N) * Math.PI * 2;
-      addQuad(R_fl*Math.cos(u0), R_fl*Math.sin(u0), 0, R_fl*Math.cos(u1), R_fl*Math.sin(u1), 0, R_fl*Math.cos(u1), R_fl*Math.sin(u1), insert_flange_height, R_fl*Math.cos(u0), R_fl*Math.sin(u0), insert_flange_height);
-      const kn = (i % Math.floor(N / Math.max(1, insert_knurl_count))) === 0, r = kn ? R_b + 0.30 : R_b;
-      addQuad(r*Math.cos(u0), r*Math.sin(u0), insert_flange_height, r*Math.cos(u1), r*Math.sin(u1), insert_flange_height, r*Math.cos(u1), r*Math.sin(u1), insert_length, r*Math.cos(u0), r*Math.sin(u0), insert_length);
-      addQuad(R_in*Math.cos(u0), R_in*Math.sin(u0), 0, R_in*Math.cos(u0), R_in*Math.sin(u0), insert_length, R_in*Math.cos(u1), R_in*Math.sin(u1), insert_length, R_in*Math.cos(u1), R_in*Math.sin(u1), 0);
-      addQuad(R_in*Math.cos(u0), R_in*Math.sin(u0), 0, R_in*Math.cos(u1), R_in*Math.sin(u1), 0, R_fl*Math.cos(u1), R_fl*Math.sin(u1), 0, R_fl*Math.cos(u0), R_fl*Math.sin(u0), 0);
-      addQuad(R_in*Math.cos(u0), R_in*Math.sin(u0), insert_length, R_b*Math.cos(u0), R_b*Math.sin(u0), insert_length, R_b*Math.cos(u1), R_b*Math.sin(u1), insert_length, R_in*Math.cos(u1), R_in*Math.sin(u1), insert_length);
+      const next = (i + 1) % N;
+      const u0 = (i / N) * Math.PI * 2, u1 = (next / N) * Math.PI * 2;
+      const r0 = getKnurlR(i), r1 = getKnurlR(next);
+
+      addQuad(R_fl*Math.cos(u0), R_fl*Math.sin(u0), 0,
+              R_fl*Math.cos(u1), R_fl*Math.sin(u1), 0,
+              R_fl*Math.cos(u1), R_fl*Math.sin(u1), insert_flange_height,
+              R_fl*Math.cos(u0), R_fl*Math.sin(u0), insert_flange_height);
+
+      addQuad(R_fl*Math.cos(u0), R_fl*Math.sin(u0), insert_flange_height,
+              R_fl*Math.cos(u1), R_fl*Math.sin(u1), insert_flange_height,
+              r1*Math.cos(u1), r1*Math.sin(u1), insert_flange_height,
+              r0*Math.cos(u0), r0*Math.sin(u0), insert_flange_height);
+
+      addQuad(r0*Math.cos(u0), r0*Math.sin(u0), insert_flange_height,
+              r1*Math.cos(u1), r1*Math.sin(u1), insert_flange_height,
+              r1*Math.cos(u1), r1*Math.sin(u1), insert_length,
+              r0*Math.cos(u0), r0*Math.sin(u0), insert_length);
+
+      addQuad(R_in*Math.cos(u1), R_in*Math.sin(u1), 0,
+              R_in*Math.cos(u0), R_in*Math.sin(u0), 0,
+              R_in*Math.cos(u0), R_in*Math.sin(u0), insert_length,
+              R_in*Math.cos(u1), R_in*Math.sin(u1), insert_length);
+
+      addQuad(R_in*Math.cos(u0), R_in*Math.sin(u0), 0,
+              R_fl*Math.cos(u0), R_fl*Math.sin(u0), 0,
+              R_fl*Math.cos(u1), R_fl*Math.sin(u1), 0,
+              R_in*Math.cos(u1), R_in*Math.sin(u1), 0);
+
+      addQuad(R_in*Math.cos(u1), R_in*Math.sin(u1), insert_length,
+              r1*Math.cos(u1), r1*Math.sin(u1), insert_length,
+              r0*Math.cos(u0), r0*Math.sin(u0), insert_length,
+              R_in*Math.cos(u0), R_in*Math.sin(u0), insert_length);
     }
-  } else if (part === 'wall_plug') {
+  } else if (part === "wall_plug") {
     const R_b = plug_diameter / 2, R_bore = plug_bore_diameter / 2, R_col = R_b * 1.18, tip = Math.min(plug_length * 0.22, plug_diameter * 1.4), b_len = plug_length - tip, N = 36;
     for (let i = 0; i < N; i++) {
       const u0 = (i / N) * Math.PI * 2, u1 = ((i + 1) / N) * Math.PI * 2;
