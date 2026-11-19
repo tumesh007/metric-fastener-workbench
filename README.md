@@ -8,7 +8,8 @@ The image shows the actual OpenSCAD geometry: a cap-down socket bolt, matching n
 
 ## Web app
 
-Live customizer: <https://tumesh007.github.io/metric-fastener-workbench/>
+Live customizer: <https://tumesh007.github.io/metric-fastener-workbench/>  
+[Download the Mac app package](Metric-Fastener-Workbench-Mac.zip)
 
 GitHub Pages serves a static web app. It downloads parametric `.scad` files, but cannot render STL in the browser. Open a downloaded file in OpenSCAD and export STL, or run the local `node server.mjs` app for direct STL export. The combined batch file arranges multiple bolts and nuts as separate parts in one STL.
 
