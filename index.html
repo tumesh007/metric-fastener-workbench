@@ -75,7 +75,10 @@ module nut_model(){difference(){hex_prism(nut_across_flats,nut_height);union(){t
 
 // Separate prototype for a pointed plastic self-tapping screw. Pitch is adjustable.
 module self_tapping_shaft(){root=max(0.25,major_d-0.95*tapping_pitch); tip=min(bolt_length*0.32,2.2*tapping_pitch); threaded=max(0.5,bolt_length-tip);
-    intersection(){union(){cylinder(d=root,h=threaded);translate([0,0,threaded]) cylinder(d1=root,d2=0.35,h=tip);translate([0,0,-tapping_pitch]) helix_profile(root/2-0.025,0.58*tapping_pitch,tapping_pitch,bolt_length);} union(){cylinder(d=major_d,h=threaded);translate([0,0,threaded]) cylinder(d1=major_d,d2=0.35,h=tip+0.01);}}
+    // In local bolt coordinates the head is at Z=bolt_length. Keep the full
+    // diameter root at that end; taper toward local Z=0 so it becomes the
+    // upper, far end after the established 180-degree cap-down transform.
+    intersection(){union(){translate([0,0,tip]) cylinder(d=root,h=threaded);cylinder(d1=0.35,d2=root,h=tip);translate([0,0,tip-tapping_pitch]) helix_profile(root/2-0.025,0.58*tapping_pitch,tapping_pitch,threaded);} union(){translate([0,0,tip]) cylinder(d=major_d,h=threaded);cylinder(d1=0.35,d2=major_d,h=tip+0.01);}}
 }
 module self_tapping_model(){translate([0,0,bolt_length+head_height]) rotate([180,0,0]) union(){self_tapping_shaft();translate([0,0,bolt_length]) bolt_head();}}
 

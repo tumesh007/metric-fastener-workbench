@@ -4,7 +4,7 @@ Parametric OpenSCAD models and a browser customizer for ISO coarse metric sizes 
 
 ![OpenSCAD rendered prototype parts](assets/workbench-preview.png)
 
-The image shows the actual OpenSCAD geometry: a cap-down socket bolt, matching nut, pointed self-tapping screw, printed insert mock-up, and split wall plug.
+The image shows the actual OpenSCAD geometry. The self-tapping screw prints head-down: its full-diameter root joins the head and its tapered point rises at the far end of the shank.
 
 ## Web app
 
