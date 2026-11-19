@@ -194,14 +194,38 @@ module flat_thumb_screw_model() {
 module wing_screw_model() {
     base_d = max(major_d * 2.0, head_diameter * 0.8);
     base_h = head_height;
-    wing_span = max(major_d * 4.5, 14);
-    wing_th = max(1.6, major_d * 0.5);
-    wing_h = max(6.0, major_d * 2.2);
+    wing_span = max(major_d * 4.6, 16);
+    wing_th = max(2.2, major_d * 0.6);
+    wing_h = max(7.5, major_d * 2.4);
     translate([0,0,bolt_length+base_h]) rotate([180,0,0]) union() {
         external_threaded_shaft(bolt_length);
         translate([0,0,bolt_length]) union() {
             cylinder(d=base_d, h=base_h);
-            translate([0,0,base_h/2]) for(i=[-1,1]) translate([i*wing_span*0.28, 0, 0]) cube([wing_span*0.44, wing_th, wing_h], center=true);
+            for(i=[-1,1]) hull() {
+                translate([i*base_d*0.25, 0, 0]) cylinder(d=wing_th, h=base_h);
+                translate([i*(wing_span/2 - wing_th/2), 0, wing_h - wing_th/2]) rotate([90,0,0]) cylinder(d=wing_th, h=wing_th, center=true);
+            }
+        }
+    }
+}
+
+module oval_wing_screw_model() {
+    span = max(major_d * 5.2, 20);
+    th = max(major_d * 0.9, 4.0);
+    h = max(major_d * 2.6, 13);
+    hub_d = max(major_d * 2.2, head_diameter * 0.85);
+    hub_h = min(head_height * 0.6, max(1.5, major_d * 0.6));
+    tot_h = h;
+    translate([0,0,bolt_length+tot_h]) rotate([180,0,0]) union() {
+        external_threaded_shaft(bolt_length);
+        translate([0,0,bolt_length]) union() {
+            cylinder(d=hub_d, h=hub_h);
+            hull() {
+                translate([0,0,hub_h]) cylinder(d=hub_d, h=0.1);
+                translate([-span*0.35, 0, h - th/2]) rotate([90,0,0]) cylinder(d=th, h=th, center=true);
+                translate([span*0.35, 0, h - th/2]) rotate([90,0,0]) cylinder(d=th, h=th, center=true);
+                translate([0, 0, h - th/4]) rotate([90,0,0]) cylinder(d=th*1.15, h=th, center=true);
+            }
         }
     }
 }
@@ -320,10 +344,15 @@ module acorn_nut_model() {
     }
 }
 module wing_nut_model() {
-    wing_h = max(5.0, nut_across_flats * 1.2);
+    wing_span = max(major_d * 4.6, 16);
+    wing_th = max(2.2, major_d * 0.6);
+    wing_h = max(7.0, nut_across_flats * 1.3);
     hex_nut_core(nut_height) union() {
         hex_prism(nut_across_flats, nut_height);
-        for(i=[-1,1]) translate([i*nut_across_flats*0.7, 0, wing_h/2]) cube([nut_across_flats*0.4, nut_across_flats*0.2, wing_h], center=true);
+        for(i=[-1,1]) hull() {
+            translate([i*nut_across_flats*0.25, 0, 0]) cylinder(d=wing_th, h=nut_height);
+            translate([i*(wing_span/2 - wing_th/2), 0, wing_h - wing_th/2]) rotate([90,0,0]) cylinder(d=wing_th, h=wing_th, center=true);
+        }
     }
 }
 module thumb_nut_model() {
@@ -434,6 +463,7 @@ else if(part=="shoulder_screw") shoulder_screw_model();
 else if(part=="thumb_screw") thumb_screw_model();
 else if(part=="flat_thumb_screw") flat_thumb_screw_model();
 else if(part=="wing_screw") wing_screw_model();
+else if(part=="oval_wing_screw") oval_wing_screw_model();
 else if(part=="set_screw_flat" || part=="set_screw") set_screw_flat_model();
 else if(part=="set_screw_cone") set_screw_cone_model();
 else if(part=="wood_hex_screw") wood_hex_screw_model();

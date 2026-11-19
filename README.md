@@ -19,9 +19,10 @@ Standardized parametric models mapped to official ISO / DIN / EN standards:
 
 - **Hexagon head bolts & screws:** ISO 4014 / ISO 4017 / DIN 933 (standard hex), EN 1665 / ISO 4162 (flanged hex). Cap face down at Z=0 for support-free 3D printing.
 - **Hexagon socket & countersunk screws:** ISO 4762 (socket head cap), ISO 7380 (button head), ISO 10642 (90° countersunk flat head).
-- **Pan & thumb screws:** ISO 7045 (pan head), DIN 464 (knurled thumb screw).
+- **Thumb & wing screws:** DIN 464 (knurled thumb screw with collar), DIN 653 (flat knurled thumb screw), DIN 316 (traditional wing screw), and high-torque oval wing screw (thick continuous elliptical arch designed for FDM layer-line shear strength).
+- **Machine & socket screws:** ISO 7045 (pan head), ISO 7379 (socket shoulder screw).
 - **Drives:** Hex socket (Allen key), Torx / Hexalobular (ISO 14579), Phillips cross-recess, Slotted (ISO 1207), and solid / none.
-- **Nuts:** ISO 4032 / DIN 934 (standard hex), DIN 6923 / ISO 4161 (flanged nut), DIN 985 (prevailing torque lock / Nyloc), DIN 1587 (acorn dome cap nut), DIN 315 (wing nut).
+- **Nuts:** ISO 4032 / DIN 934 (standard hex), ISO 4035 / DIN 439 (thin jam nut), DIN 6923 / ISO 4161 (flanged nut), DIN 985 / ISO 7040 (prevailing torque lock / Nyloc), DIN 1587 (acorn dome cap nut), DIN 315 (wing nut), DIN 466 (knurled thumb nut), DIN 467 (flat knurled thumb nut), DIN 557 / DIN 562 (square nut).
 - **Washers:** ISO 7089 / DIN 125 (standard flat washer), ISO 7093 / DIN 9021 (fender / large OD penny washer).
 - **Rods & studs:** DIN 975 continuous threaded metric rod / stud.
 - **Set screws:** ISO 4026 / DIN 913 headless grub screw with internal socket.
