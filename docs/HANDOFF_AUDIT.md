@@ -113,6 +113,10 @@
   - Forward ramp allows smooth entry into drilled wall hole; sharp trailing shoulder bites substrate against pull-out.
   - Watertight single-shell mesh: 2,808 triangles, 697.77 mm³.
 
+### 3.6 Nyloc Nut Collar Geometry Parity
+* **Defect:** In `index.html`, `nyloc_nut` previously fell through to generic hex nut routing, omitting the cylindrical nylon ring retention collar (`col_h = nut_height * 0.35`, diameter `0.9 * nut_across_flats`) and terminating the internal threaded bore early at `nut_height` instead of `totalH`.
+* **Resolution:** Added dedicated `nyloc_nut` branch in `createFastenerTriangles()` extending `emitThreadedBore(totalH)` and lofting the transition quad ring to the cylindrical nylon collar at `totalH`. Watertight single-shell mesh: 2,232 triangles, 53.40 mm³ (distinct from standard 1,656-triangle hex nut).
+
 ---
 
 ## 4. Automated Mathematical Audit Script
