@@ -830,8 +830,8 @@ function setDefaults() {
     $('head_diameter').value = Math.round(d * 3.6 * 10) / 10;
     $('head_height').value = Math.round(Math.max(2.5, d * 1.2) * 10) / 10;
   } else if (part === 'oval_wing_screw') {
-    $(head_diameter).value = Math.max(20, Math.round(d * 5.2 * 10) / 10);
-    $(head_height).value = Math.max(13, Math.round(d * 2.6 * 10) / 10);
+    $('head_diameter').value = Math.max(20, Math.round(d * 5.2 * 10) / 10);
+    $('head_height').value = Math.max(13, Math.round(d * 2.6 * 10) / 10);
   } else if (isHex) {
     $('head_diameter').value = af;
     $('head_height').value = d === 3 ? 2 : d === 4 ? 2.8 : d === 5 ? 3.5 : Math.round(d*.7*10)/10;
