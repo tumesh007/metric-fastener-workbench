@@ -393,11 +393,12 @@ module fender_washer_model() {
     difference() { cylinder(d=outer_d, h=th); translate([0,0,-0.1]) cylinder(d=inner_d, h=th+0.2); }
 }
 module spring_washer_model() {
-    inner_d = major_d + 0.35; outer_d = max(major_d * 1.8, major_d + 2.5); th = max(0.6, major_d * 0.22);
+    inner_d = major_d + 0.35; outer_d = max(major_d * 1.8, major_d + 2.5); th = max(0.7, major_d * 0.25);
+    lift = max(0.4, th * 0.65); gap_deg = 20;
     difference() {
-        cylinder(d=outer_d, h=th);
-        translate([0,0,-0.1]) cylinder(d=inner_d, h=th+0.2);
-        translate([0, -0.4, -0.1]) cube([outer_d, 0.8, th+0.2]);
+        linear_extrude(height=th+lift, twist=360-gap_deg, slices=36, convexity=4)
+            translate([inner_d/2, 0, 0]) square([(outer_d - inner_d)/2, th]);
+        rotate([0,0,-gap_deg/2]) translate([0, -outer_d*1.5, -0.1]) cube([outer_d*2, outer_d*3, th+lift+0.2]);
     }
 }
 
@@ -440,6 +441,25 @@ module wall_plug_model() {
     }
 }
 
+module winged_wall_plug_model() {
+    tip = min(plug_length*0.22, plug_diameter*1.4); body = plug_length - tip;
+    w_span = plug_diameter * 0.28; w_th = max(0.6, plug_diameter * 0.12);
+    mid_z = plug_length * 0.35; bot_z = plug_length * 0.65;
+    wing_h = max(2.5, plug_length * 0.18);
+    difference() {
+        union() {
+            cylinder(d=plug_diameter, h=body);
+            translate([0,0,body]) cylinder(d1=plug_diameter, d2=plug_diameter*0.30, h=tip);
+            cylinder(d1=plug_diameter*1.18, d2=plug_diameter, h=min(1.2, plug_length*0.12));
+            for(i=[0:2]) rotate([0,0,i*120]) translate([plug_diameter/2 - 0.2, -w_th/2, mid_z])
+                linear_extrude(height=wing_h, scale=[0.3, 0.6]) square([w_span, w_th]);
+            for(i=[0:2]) rotate([0,0,i*120 + 60]) translate([plug_diameter/2 - 0.2, -w_th/2, bot_z])
+                linear_extrude(height=wing_h, scale=[0.3, 0.6]) square([w_span, w_th]);
+        }
+        translate([0,0,-0.1]) cylinder(d=plug_bore_diameter, h=plug_length+0.2);
+    }
+}
+
 module batch_model() {
     bolt_spacing = max(head_diameter, major_d) + 5; nut_spacing = nut_across_flats + 5; nut_row_y = max(head_diameter, nut_across_flats) + 6;
     if(bolt_count>0) for(i=[0:bolt_count-1]) translate([i*bolt_spacing, 0, 0]) socket_cap_model();
@@ -479,4 +499,5 @@ else if(part=="threaded_rod") threaded_rod_model();
 else if(part=="tslot_nut") tslot_nut_model();
 else if(part=="heat_set_insert") heat_set_insert_model();
 else if(part=="wall_plug") wall_plug_model();
+else if(part=="winged_wall_plug") winged_wall_plug_model();
 else batch_model();

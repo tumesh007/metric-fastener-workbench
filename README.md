@@ -23,12 +23,12 @@ Standardized parametric models mapped to official ISO / DIN / EN standards:
 - **Machine & socket screws:** ISO 7045 (pan head), ISO 7379 (socket shoulder screw).
 - **Drives:** Hex socket (Allen key), Torx / Hexalobular (ISO 14579), Phillips cross-recess, Slotted (ISO 1207), and solid / none.
 - **Nuts:** ISO 4032 / DIN 934 (standard hex), ISO 4035 / DIN 439 (thin jam nut), DIN 6923 / ISO 4161 (flanged nut), DIN 985 / ISO 7040 (prevailing torque lock / Nyloc), DIN 1587 (acorn dome cap nut), DIN 315 (wing nut), DIN 466 (knurled thumb nut), DIN 467 (flat knurled thumb nut), DIN 557 / DIN 562 (square nut).
-- **Washers:** ISO 7089 / DIN 125 (standard flat washer), ISO 7093 / DIN 9021 (fender / large OD penny washer).
+- **Washers:** ISO 7089 / DIN 125 (standard flat washer), ISO 7093 / DIN 9021 (fender / large OD penny washer), and DIN 127 (helical split spring lock washer with radial gap and axial pitch lift).
 - **Rods & studs:** DIN 975 continuous threaded metric rod / stud.
 - **Set screws:** ISO 4026 / DIN 913 headless grub screw with internal socket.
 - **T-slot fasteners:** Drop-in / hammer nut for 2020 (6 mm slot) and 3030 (8 mm slot) aluminum extrusion profiles.
 - **Wood / self-tapping screws:** DIN 571 tapered pointed screw geometry.
-- **Inserts & anchors:** Knurled heat-set insert mock-up and tapered split expansion wall plug.
+- **Inserts & anchors:** Knurled heat-set insert mock-up, tapered split expansion wall plug, and winged retention wall plug (dual-tier staggered retention wings: 3 middle + 3 bottom fins for anti-pullout masonry grip).
 
 Open `metric_fastener.scad` in OpenSCAD and use the Customizer panel, or open `index.html` for the browser controls. The browser drawing is illustrative; the OpenSCAD-rendered image above shows the generated geometry.
 
