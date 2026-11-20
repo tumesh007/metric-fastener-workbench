@@ -406,12 +406,10 @@ module threaded_rod_model() { external_threaded_shaft(bolt_length); }
 module tslot_nut_model() {
     slot_w = tslot_series==30 ? 8 : 6; nut_w = tslot_series==30 ? 14 : 10;
     nut_l = tslot_series==30 ? 16 : 11.5; nut_h = tslot_series==30 ? 5 : 4; neck_h = tslot_series==30 ? 2 : 1.5;
-    difference() {
-        union() {
-            cube([nut_l, nut_w, nut_h-neck_h], center=true);
-            translate([0,0,(nut_h-neck_h)/2]) cube([nut_l*0.65, slot_w-0.4, neck_h], center=true);
-        }
-        cylinder(d=minor_d+2*thread_clearance, h=nut_h*2, center=true);
+    base_h = nut_h - neck_h;
+    hex_nut_core(nut_h) union() {
+        translate([0,0,base_h/2]) cube([nut_l, nut_w, base_h], center=true);
+        translate([0,0,base_h+neck_h/2]) cube([nut_l*0.65, slot_w-0.4, neck_h], center=true);
     }
 }
 

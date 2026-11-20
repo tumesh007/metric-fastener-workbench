@@ -731,12 +731,10 @@ module threaded_rod_model() { external_threaded_shaft(bolt_length); }
 module tslot_nut_model() {
     slot_w = tslot_series==30 ? 8 : 6; nut_w = tslot_series==30 ? 14 : 10;
     nut_l = tslot_series==30 ? 16 : 11.5; nut_h = tslot_series==30 ? 5 : 4; neck_h = tslot_series==30 ? 2 : 1.5;
-    difference() {
-        union() {
-            cube([nut_l, nut_w, nut_h-neck_h], center=true);
-            translate([0,0,(nut_h-neck_h)/2]) cube([nut_l*0.65, slot_w-0.4, neck_h], center=true);
-        }
-        cylinder(d=minor_d+2*thread_clearance, h=nut_h*2, center=true);
+    base_h = nut_h - neck_h;
+    hex_nut_core(nut_h) union() {
+        translate([0,0,base_h/2]) cube([nut_l, nut_w, base_h], center=true);
+        translate([0,0,base_h+neck_h/2]) cube([nut_l*0.65, slot_w-0.4, neck_h], center=true);
     }
 }
 
@@ -917,7 +915,7 @@ function update() {
     if (part === 'thumb_nut') sh += `<rect x="185" y="150" width="70" height="25" rx="3" fill="#496d6b" stroke="#a4dfd0" stroke-width="2"/>`;
     sh += `<rect x="135" y="115" width="170" height="36" rx="6" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/>`;
     for(let i=0;i<10;i++) sh += `<line x1="${145+i*16}" y1="117" x2="${145+i*16}" y2="149" stroke="#375553" stroke-width="3"/>`;
-    sh += `<ellipse cx="220" cy="115" rx="28" ry="10" fill="#10151d" stroke="#d0f2e9" stroke-width="2"/>`;
+    sh += `<ellipse cx="220" cy="115" rx="28" ry="10" fill="#10151d" stroke="#d0f2e9" stroke-width="2"/><path d="M200 115q20 5 40 0 M204 118q16 4 32 0 M208 112q12 4 24 0" stroke="#7ac4b5" stroke-width="1.5" fill="none"/>`;
   } else if (['wing_screw', 'wing_nut'].includes(part)) {
     // Wing fastener
     if (part === 'wing_screw') {
@@ -932,7 +930,7 @@ function update() {
     sh += `<polygon points="125,115 170,78 270,78 315,115 270,150 170,150" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/>`;
     sh += `<path d="M125 115v55l45 35v-55zm190 0v55l-45 35v-55zm-145 35h100v55H170z" fill="#496d6b" stroke="#a4dfd0" stroke-width="2"/>`;
     if (part === 'acorn_nut') sh += `<path d="M175 78q45 -45 90 0z" fill="#a4dfd0" stroke="#d0f2e9" stroke-width="2"/>`;
-    sh += `<ellipse cx="220" cy="115" rx="43" ry="19" fill="#10151d" stroke="#d0f2e9" stroke-width="3"/>`;
+    sh += `<ellipse cx="220" cy="115" rx="43" ry="19" fill="#10151d" stroke="#d0f2e9" stroke-width="3"/><path d="M190 115q30 9 60 0 M195 120q25 7 50 0 M200 110q20 7 40 0" stroke="#7ac4b5" stroke-width="2" fill="none"/>`;
   } else if (isWasher) {
     sh += `<ellipse cx="220" cy="180" rx="95" ry="42" fill="#496d6b" stroke="#a4dfd0" stroke-width="3"/>`;
     sh += `<ellipse cx="220" cy="172" rx="95" ry="42" fill="#83b9ae" stroke="#d0f2e9" stroke-width="3"/>`;
@@ -1419,6 +1417,40 @@ function createFastenerTriangles(params) {
     }
   }
 
+  const c_th = thread_clearance;
+  const R_crest = (minor_d + 2 * c_th) / 2;
+  const R_root = (major_d + 2 * c_th) / 2;
+  const cDepth = R_root - R_crest;
+  const base_w_th = 0.72 * pitch, crest_w_th = 0.12 * pitch;
+
+  function getInternalR(u, rz) {
+    let phase = (rz - pitch * (u / (Math.PI * 2))) % pitch;
+    if (phase < 0) phase += pitch;
+    if (phase < base_w_th) {
+      const mid = base_w_th / 2, dist = Math.abs(phase - mid);
+      if (dist <= crest_w_th / 2) return R_crest;
+      return R_root - Math.max(0, 1 - (dist - crest_w_th / 2) / ((base_w_th - crest_w_th) / 2)) * cDepth;
+    }
+    return R_root;
+  }
+
+  function emitThreadedBore(H, z0_offset = 0) {
+    const N_rad = 36, N_h = Math.max(16, Math.ceil(H * 8));
+    for (let j = 0; j < N_h; j++) {
+      const z0 = z0_offset + (j / N_h) * H, z1 = z0_offset + ((j + 1) / N_h) * H;
+      const rz0 = (j / N_h) * H, rz1 = ((j + 1) / N_h) * H;
+      for (let i = 0; i < N_rad; i++) {
+        const next = (i + 1) % N_rad;
+        const u0 = (i / N_rad) * Math.PI * 2, u1 = (next === 0) ? 0 : (next / N_rad) * Math.PI * 2;
+        const x00 = getInternalR(u0, rz0) * Math.cos(u0), y00 = getInternalR(u0, rz0) * Math.sin(u0);
+        const x10 = getInternalR(u1, rz0) * Math.cos(u1), y10 = getInternalR(u1, rz0) * Math.sin(u1);
+        const x01 = getInternalR(u0, rz1) * Math.cos(u0), y01 = getInternalR(u0, rz1) * Math.sin(u0);
+        const x11 = getInternalR(u1, rz1) * Math.cos(u1), y11 = getInternalR(u1, rz1) * Math.sin(u1);
+        addQuad(x10, y10, z0, x00, y00, z0, x01, y01, z1, x11, y11, z1);
+      }
+    }
+  }
+
   // Routing
   const isScrewOrBolt = ["socket_cap", "hex_bolt", "hex_flange_bolt", "button_head", "button_flange", "countersunk_screw", "pan_head", "shoulder_screw", "thumb_screw", "flat_thumb_screw", "wing_screw", "oval_wing_screw"].includes(part);
   const isTapping = ["wood_hex_screw", "tapping_screw", "csk_tapping_screw"].includes(part);
@@ -1451,63 +1483,103 @@ function createFastenerTriangles(params) {
     }
   } else if (part === "tslot_nut") {
     const slot_w = tslot_series === 30 ? 8 : 6, nut_w = tslot_series === 30 ? 14 : 10;
-    const nut_l = tslot_series === 30 ? 16 : 11.5, nut_h = tslot_series === 30 ? 5 : 4;
+    const nut_l = tslot_series === 30 ? 16 : 11.5, nut_h = tslot_series === 30 ? 5 : 4, neck_h = tslot_series === 30 ? 2 : 1.5;
+    const base_h = nut_h - neck_h;
     const hl = nut_l / 2, hw = nut_w / 2;
-    addQuad(-hl, -hw, 0, hl, -hw, 0, hl, hw, 0, -hl, hw, 0);
-    addQuad(-hl, -hw, nut_h, -hl, hw, nut_h, hl, hw, nut_h, hl, -hw, nut_h);
-    addQuad(-hl, -hw, 0, -hl, -hw, nut_h, hl, -hw, nut_h, hl, -hw, 0);
-    addQuad(hl, hw, 0, hl, hw, nut_h, -hl, hw, nut_h, -hl, hw, 0);
-    addQuad(-hl, hw, 0, -hl, hw, nut_h, -hl, -hw, nut_h, -hl, -hw, 0);
-    addQuad(hl, -hw, 0, hl, -hw, nut_h, hl, hw, nut_h, hl, hw, 0);
+    const n_hl = (nut_l * 0.65) / 2, n_hw = (slot_w - 0.4) / 2;
+    const N = 36;
+
+    function getTslotR(idx, isNeck) {
+      const u = (idx / N) * Math.PI * 2;
+      const cosU = Math.abs(Math.cos(u)), sinU = Math.abs(Math.sin(u));
+      const L = isNeck ? n_hl : hl, W = isNeck ? n_hw : hw;
+      const rx = cosU > 1e-6 ? L / cosU : 1e9, ry = sinU > 1e-6 ? W / sinU : 1e9;
+      return Math.min(rx, ry);
+    }
+
+    emitThreadedBore(nut_h);
+
+    for (let i = 0; i < N; i++) {
+      const next = (i + 1) % N;
+      const u0 = (i / N) * Math.PI * 2, u1 = (next === 0) ? 0 : (next / N) * Math.PI * 2;
+      const rb0 = getTslotR(i, false), rb1 = getTslotR(next, false);
+      const rn0 = getTslotR(i, true), rn1 = getTslotR(next, true);
+
+      const bx0 = rb0 * Math.cos(u0), by0 = rb0 * Math.sin(u0);
+      const bx1 = rb1 * Math.cos(u1), by1 = rb1 * Math.sin(u1);
+      const nx0 = rn0 * Math.cos(u0), ny0 = rn0 * Math.sin(u0);
+      const nx1 = rn1 * Math.cos(u1), ny1 = rn1 * Math.sin(u1);
+
+      const b_in0_x = getInternalR(u0, 0) * Math.cos(u0), b_in0_y = getInternalR(u0, 0) * Math.sin(u0);
+      const b_in1_x = getInternalR(u1, 0) * Math.cos(u1), b_in1_y = getInternalR(u1, 0) * Math.sin(u1);
+      const t_in0_x = getInternalR(u0, nut_h) * Math.cos(u0), t_in0_y = getInternalR(u0, nut_h) * Math.sin(u0);
+      const t_in1_x = getInternalR(u1, nut_h) * Math.cos(u1), t_in1_y = getInternalR(u1, nut_h) * Math.sin(u1);
+
+      addQuad(bx0, by0, 0, bx1, by1, 0, bx1, by1, base_h, bx0, by0, base_h);
+      addQuad(nx0, ny0, base_h, bx0, by0, base_h, bx1, by1, base_h, nx1, ny1, base_h);
+      addQuad(nx0, ny0, base_h, nx1, ny1, base_h, nx1, ny1, nut_h, nx0, ny0, nut_h);
+      addQuad(bx0, by0, 0, b_in0_x, b_in0_y, 0, b_in1_x, b_in1_y, 0, bx1, by1, 0);
+      addQuad(nx1, ny1, nut_h, t_in1_x, t_in1_y, nut_h, t_in0_x, t_in0_y, nut_h, nx0, ny0, nut_h);
+    }
+
   } else if (part === "flat_thumb_nut") {
     const R_wheel = Math.max(major_d * 3.0, nut_across_flats * 1.4) / 2;
     const tooth_depth = Math.max(0.2, knurl_depth);
-    const n_teeth = Math.max(18, Math.round(R_wheel * 2 * 1.4));
-    const N = n_teeth * 2;
-    const R_bore = (minor_d + 2 * thread_clearance) / 2;
+    const N = 36;
     function getRk(idx) { return (idx % 2 === 1) ? R_wheel + tooth_depth : R_wheel; }
+
+    emitThreadedBore(nut_height);
+
     for (let i = 0; i < N; i++) {
       const next = (i + 1) % N;
-      const a1 = (i / N) * Math.PI * 2, a2 = (next / N) * Math.PI * 2;
-      const r1 = getRk(i), r2 = getRk(next);
-      const x1 = r1 * Math.cos(a1), y1 = r1 * Math.sin(a1);
-      const x2 = r2 * Math.cos(a2), y2 = r2 * Math.sin(a2);
-      const bx1 = R_bore * Math.cos(a1), by1 = R_bore * Math.sin(a1);
-      const bx2 = R_bore * Math.cos(a2), by2 = R_bore * Math.sin(a2);
-      addQuad(x1, y1, 0, x2, y2, 0, x2, y2, nut_height, x1, y1, nut_height);
-      addQuad(bx1, by1, 0, bx1, by1, nut_height, bx2, by2, nut_height, bx2, by2, 0);
-      addQuad(bx1, by1, 0, bx2, by2, 0, x2, y2, 0, x1, y1, 0);
-      addQuad(bx1, by1, nut_height, x1, y1, nut_height, x2, y2, nut_height, bx2, by2, nut_height);
+      const u0 = (i / N) * Math.PI * 2, u1 = (next === 0) ? 0 : (next / N) * Math.PI * 2;
+      const r0 = getRk(i), r1 = getRk(next);
+      const wx0 = r0 * Math.cos(u0), wy0 = r0 * Math.sin(u0);
+      const wx1 = r1 * Math.cos(u1), wy1 = r1 * Math.sin(u1);
+
+      const bx0 = getInternalR(u0, 0) * Math.cos(u0), by0 = getInternalR(u0, 0) * Math.sin(u0);
+      const bx1 = getInternalR(u1, 0) * Math.cos(u1), by1 = getInternalR(u1, 0) * Math.sin(u1);
+      const tx0 = getInternalR(u0, nut_height) * Math.cos(u0), ty0 = getInternalR(u0, nut_height) * Math.sin(u0);
+      const tx1 = getInternalR(u1, nut_height) * Math.cos(u1), ty1 = getInternalR(u1, nut_height) * Math.sin(u1);
+
+      addQuad(wx0, wy0, 0, wx1, wy1, 0, wx1, wy1, nut_height, wx0, wy0, nut_height);
+      addQuad(wx0, wy0, 0, bx0, by0, 0, bx1, by1, 0, wx1, wy1, 0);
+      addQuad(wx1, wy1, nut_height, tx1, ty1, nut_height, tx0, ty0, nut_height, wx0, wy0, nut_height);
     }
+
   } else if (part === "thumb_nut") {
     const collar_h = Math.min(nut_height * 0.45, Math.max(1.2, major_d * 0.55));
-    const wheel_h = nut_height - collar_h;
     const R_wheel = Math.max(major_d * 3.2, nut_across_flats * 1.4) / 2;
     const R_col = Math.max(major_d * 1.8, nut_across_flats * 0.9) / 2;
     const tooth_depth = Math.max(0.2, knurl_depth);
-    const n_teeth = Math.max(18, Math.round(R_wheel * 2 * 1.4));
-    const N = n_teeth * 2;
-    const R_bore = (minor_d + 2 * thread_clearance) / 2;
+    const N = 36;
     function getRk(idx) { return (idx % 2 === 1) ? R_wheel + tooth_depth : R_wheel; }
+
+    emitThreadedBore(nut_height);
+
     for (let i = 0; i < N; i++) {
       const next = (i + 1) % N;
-      const a1 = (i / N) * Math.PI * 2, a2 = (next / N) * Math.PI * 2;
-      const r1 = getRk(i), r2 = getRk(next);
-      const x1 = r1 * Math.cos(a1), y1 = r1 * Math.sin(a1);
-      const x2 = r2 * Math.cos(a2), y2 = r2 * Math.sin(a2);
-      const cx1 = R_col * Math.cos(a1), cy1 = R_col * Math.sin(a1);
-      const cx2 = R_col * Math.cos(a2), cy2 = R_col * Math.sin(a2);
-      const bx1 = R_bore * Math.cos(a1), by1 = R_bore * Math.sin(a1);
-      const bx2 = R_bore * Math.cos(a2), by2 = R_bore * Math.sin(a2);
-      addQuad(cx1, cy1, 0, cx2, cy2, 0, cx2, cy2, collar_h, cx1, cy1, collar_h);
-      addQuad(cx1, cy1, collar_h, cx2, cy2, collar_h, x2, y2, collar_h, x1, y1, collar_h);
-      addQuad(x1, y1, collar_h, x2, y2, collar_h, x2, y2, nut_height, x1, y1, nut_height);
-      addQuad(bx1, by1, 0, bx1, by1, nut_height, bx2, by2, nut_height, bx2, by2, 0);
-      addQuad(bx1, by1, 0, bx2, by2, 0, cx2, cy2, 0, cx1, cy1, 0);
-      addQuad(bx1, by1, nut_height, x1, y1, nut_height, x2, y2, nut_height, bx2, by2, nut_height);
+      const u0 = (i / N) * Math.PI * 2, u1 = (next === 0) ? 0 : (next / N) * Math.PI * 2;
+      const r0 = getRk(i), r1 = getRk(next);
+      const wx0 = r0 * Math.cos(u0), wy0 = r0 * Math.sin(u0);
+      const wx1 = r1 * Math.cos(u1), wy1 = r1 * Math.sin(u1);
+      const cx0 = R_col * Math.cos(u0), cy0 = R_col * Math.sin(u0);
+      const cx1 = R_col * Math.cos(u1), cy1 = R_col * Math.sin(u1);
+
+      const bx0 = getInternalR(u0, 0) * Math.cos(u0), by0 = getInternalR(u0, 0) * Math.sin(u0);
+      const bx1 = getInternalR(u1, 0) * Math.cos(u1), by1 = getInternalR(u1, 0) * Math.sin(u1);
+      const tx0 = getInternalR(u0, nut_height) * Math.cos(u0), ty0 = getInternalR(u0, nut_height) * Math.sin(u0);
+      const tx1 = getInternalR(u1, nut_height) * Math.cos(u1), ty1 = getInternalR(u1, nut_height) * Math.sin(u1);
+
+      addQuad(cx0, cy0, 0, cx1, cy1, 0, cx1, cy1, collar_h, cx0, cy0, collar_h);
+      addQuad(cx0, cy0, collar_h, cx1, cy1, collar_h, wx1, wy1, collar_h, wx0, wy0, collar_h);
+      addQuad(wx0, wy0, collar_h, wx1, wy1, collar_h, wx1, wy1, nut_height, wx0, wy0, nut_height);
+      addQuad(cx0, cy0, 0, bx0, by0, 0, bx1, by1, 0, cx1, cy1, 0);
+      addQuad(wx1, wy1, nut_height, tx1, ty1, nut_height, tx0, ty0, nut_height, wx0, wy0, nut_height);
     }
+
   } else if (part === "square_nut") {
-    const hw = nut_across_flats / 2, R_bore = (minor_d + 2 * thread_clearance) / 2;
+    const hw = nut_across_flats / 2;
     const corners = [[-hw, -hw], [hw, -hw], [hw, hw], [-hw, hw]];
     const outer = [];
     for (let s = 0; s < 4; s++) {
@@ -1518,23 +1590,130 @@ function createFastenerTriangles(params) {
       }
     }
     const N = 36;
+
+    emitThreadedBore(nut_height);
+
     for (let i = 0; i < N; i++) {
       const next = (i + 1) % N;
-      const a1 = (i / N) * Math.PI * 2, a2 = (next / N) * Math.PI * 2;
-      const ox1 = outer[i][0], oy1 = outer[i][1];
-      const ox2 = outer[next][0], oy2 = outer[next][1];
-      const bx1 = R_bore * Math.cos(a1), by1 = R_bore * Math.sin(a1);
-      const bx2 = R_bore * Math.cos(a2), by2 = R_bore * Math.sin(a2);
+      const u0 = (i / N) * Math.PI * 2, u1 = (next === 0) ? 0 : (next / N) * Math.PI * 2;
+      const ox0 = outer[i][0], oy0 = outer[i][1];
+      const ox1 = outer[next][0], oy1 = outer[next][1];
 
-      addQuad(ox1, oy1, 0, ox2, oy2, 0, ox2, oy2, nut_height, ox1, oy1, nut_height);
-      addQuad(bx1, by1, 0, bx1, by1, nut_height, bx2, by2, nut_height, bx2, by2, 0);
-      addQuad(bx1, by1, 0, bx2, by2, 0, ox2, oy2, 0, ox1, oy1, 0);
-      addQuad(bx1, by1, nut_height, ox1, oy1, nut_height, ox2, oy2, nut_height, bx2, by2, nut_height);
+      const bx0 = getInternalR(u0, 0) * Math.cos(u0), by0 = getInternalR(u0, 0) * Math.sin(u0);
+      const bx1 = getInternalR(u1, 0) * Math.cos(u1), by1 = getInternalR(u1, 0) * Math.sin(u1);
+      const tx0 = getInternalR(u0, nut_height) * Math.cos(u0), ty0 = getInternalR(u0, nut_height) * Math.sin(u0);
+      const tx1 = getInternalR(u1, nut_height) * Math.cos(u1), ty1 = getInternalR(u1, nut_height) * Math.sin(u1);
+
+      addQuad(ox0, oy0, 0, ox1, oy1, 0, ox1, oy1, nut_height, ox0, oy0, nut_height);
+      addQuad(ox0, oy0, 0, bx0, by0, 0, bx1, by1, 0, ox1, oy1, 0);
+      addQuad(ox1, oy1, nut_height, tx1, ty1, nut_height, tx0, ty0, nut_height, ox0, oy0, nut_height);
     }
+
+  } else if (part === "wing_nut") {
+    const wing_span = Math.max(major_d * 4.6, 16), wing_th = Math.max(2.2, major_d * 0.6);
+    const wing_h = Math.max(7.0, nut_across_flats * 1.3);
+    const R_hub = Math.max(nut_across_flats * 0.6, major_d * 1.5);
+    const hw = wing_span / 2, ht = wing_th / 2;
+    const N = 36;
+    function getWingR(idx) {
+      const u = (idx / N) * Math.PI * 2;
+      const cosU = Math.abs(Math.cos(u)), sinU = Math.abs(Math.sin(u));
+      const rx = cosU > 1e-6 ? hw / cosU : 1e9, ry = sinU > 1e-6 ? ht / sinU : 1e9;
+      return Math.max(R_hub, Math.min(rx, ry));
+    }
+
+    emitThreadedBore(wing_h);
+
+    for (let i = 0; i < N; i++) {
+      const next = (i + 1) % N;
+      const u0 = (i / N) * Math.PI * 2, u1 = (next === 0) ? 0 : (next / N) * Math.PI * 2;
+      const r0 = getWingR(i), r1 = getWingR(next);
+      const ox0 = r0 * Math.cos(u0), oy0 = r0 * Math.sin(u0);
+      const ox1 = r1 * Math.cos(u1), oy1 = r1 * Math.sin(u1);
+
+      const bx0 = getInternalR(u0, 0) * Math.cos(u0), by0 = getInternalR(u0, 0) * Math.sin(u0);
+      const bx1 = getInternalR(u1, 0) * Math.cos(u1), by1 = getInternalR(u1, 0) * Math.sin(u1);
+      const tx0 = getInternalR(u0, wing_h) * Math.cos(u0), ty0 = getInternalR(u0, wing_h) * Math.sin(u0);
+      const tx1 = getInternalR(u1, wing_h) * Math.cos(u1), ty1 = getInternalR(u1, wing_h) * Math.sin(u1);
+
+      addQuad(ox0, oy0, 0, ox1, oy1, 0, ox1, oy1, wing_h, ox0, oy0, wing_h);
+      addQuad(ox0, oy0, 0, bx0, by0, 0, bx1, by1, 0, ox1, oy1, 0);
+      addQuad(ox1, oy1, wing_h, tx1, ty1, wing_h, tx0, ty0, wing_h, ox0, oy0, wing_h);
+    }
+
+  } else if (part === "flange_nut") {
+    const fl_h = Math.max(0.5, nut_height * 0.28);
+    const R_fl = (nut_across_flats * 1.32) / 2;
+    const R_hex = nut_across_flats / Math.sqrt(3);
+    const N = 36;
+
+    const hexOuter = [];
+    for (let s = 0; s < 6; s++) {
+      const a1 = (s / 6) * Math.PI * 2, a2 = ((s + 1) / 6) * Math.PI * 2;
+      const x1 = R_hex * Math.cos(a1), y1 = R_hex * Math.sin(a1), x2 = R_hex * Math.cos(a2), y2 = R_hex * Math.sin(a2);
+      for (let k = 0; k < 6; k++) {
+        const t = k / 6;
+        hexOuter.push([x1 + (x2 - x1) * t, y1 + (y2 - y1) * t]);
+      }
+    }
+
+    emitThreadedBore(nut_height);
+
+    for (let i = 0; i < N; i++) {
+      const next = (i + 1) % N;
+      const u0 = (i / N) * Math.PI * 2, u1 = (next === 0) ? 0 : (next / N) * Math.PI * 2;
+      const fx0 = R_fl * Math.cos(u0), fy0 = R_fl * Math.sin(u0);
+      const fx1 = R_fl * Math.cos(u1), fy1 = R_fl * Math.sin(u1);
+      const [hx0, hy0] = hexOuter[i], [hx1, hy1] = hexOuter[next];
+
+      const bx0 = getInternalR(u0, 0) * Math.cos(u0), by0 = getInternalR(u0, 0) * Math.sin(u0);
+      const bx1 = getInternalR(u1, 0) * Math.cos(u1), by1 = getInternalR(u1, 0) * Math.sin(u1);
+      const tx0 = getInternalR(u0, nut_height) * Math.cos(u0), ty0 = getInternalR(u0, nut_height) * Math.sin(u0);
+      const tx1 = getInternalR(u1, nut_height) * Math.cos(u1), ty1 = getInternalR(u1, nut_height) * Math.sin(u1);
+
+      addQuad(fx0, fy0, 0, fx1, fy1, 0, fx1, fy1, fl_h, fx0, fy0, fl_h);
+      addQuad(fx0, fy0, fl_h, fx1, fy1, fl_h, hx1, hy1, fl_h, hx0, hy0, fl_h);
+      addQuad(hx0, hy0, fl_h, hx1, hy1, fl_h, hx1, hy1, nut_height, hx0, hy0, nut_height);
+      addQuad(fx0, fy0, 0, bx0, by0, 0, bx1, by1, 0, fx1, fy1, 0);
+      addQuad(hx1, hy1, nut_height, tx1, ty1, nut_height, tx0, ty0, nut_height, hx0, hy0, nut_height);
+    }
+
+  } else if (part === "acorn_nut") {
+    const R_out = nut_across_flats / Math.sqrt(3);
+    const N = 36;
+    const outer = [];
+    for (let s = 0; s < 6; s++) {
+      const a1 = (s / 6) * Math.PI * 2, a2 = ((s + 1) / 6) * Math.PI * 2;
+      const x1 = R_out * Math.cos(a1), y1 = R_out * Math.sin(a1), x2 = R_out * Math.cos(a2), y2 = R_out * Math.sin(a2);
+      for (let k = 0; k < 6; k++) {
+        const t = k / 6;
+        outer.push([x1 + (x2 - x1) * t, y1 + (y2 - y1) * t]);
+      }
+    }
+
+    emitThreadedBore(nut_height);
+
+    const dom_h = nut_across_flats * 0.45;
+    for (let i = 0; i < N; i++) {
+      const next = (i + 1) % N;
+      const u0 = (i / N) * Math.PI * 2, u1 = (next === 0) ? 0 : (next / N) * Math.PI * 2;
+      const [X0, Y0] = outer[i], [X1, Y1] = outer[next];
+
+      const bx0 = getInternalR(u0, 0) * Math.cos(u0), by0 = getInternalR(u0, 0) * Math.sin(u0);
+      const bx1 = getInternalR(u1, 0) * Math.cos(u1), by1 = getInternalR(u1, 0) * Math.sin(u1);
+      const tx0 = getInternalR(u0, nut_height) * Math.cos(u0), ty0 = getInternalR(u0, nut_height) * Math.sin(u0);
+      const tx1 = getInternalR(u1, nut_height) * Math.cos(u1), ty1 = getInternalR(u1, nut_height) * Math.sin(u1);
+
+      addQuad(X0, Y0, 0, X1, Y1, 0, X1, Y1, nut_height, X0, Y0, nut_height);
+      addQuad(X0, Y0, 0, bx0, by0, 0, bx1, by1, 0, X1, Y1, 0);
+      addTri(0, 0, nut_height, tx1, ty1, nut_height, tx0, ty0, nut_height);
+      addTri(0, 0, nut_height + dom_h, X0, Y0, nut_height, X1, Y1, nut_height);
+    }
+
   } else if (part.includes("nut")) {
     const isJam = part === "jam_nut";
     const effH = isJam ? Math.max(1.2, nut_height * 0.55) : nut_height;
-    const R_out = nut_across_flats / Math.sqrt(3), R_bore = (minor_d + 2 * thread_clearance) / 2;
+    const R_out = nut_across_flats / Math.sqrt(3);
     const N = 36;
 
     const outer = [];
@@ -1547,88 +1726,52 @@ function createFastenerTriangles(params) {
       }
     }
 
+    emitThreadedBore(effH);
+
     for (let i = 0; i < N; i++) {
       const next = (i + 1) % N;
+      const u0 = (i / N) * Math.PI * 2, u1 = (next === 0) ? 0 : (next / N) * Math.PI * 2;
       const [X0, Y0] = outer[i], [X1, Y1] = outer[next];
-      const a1 = (i / N) * Math.PI * 2, a2 = (next / N) * Math.PI * 2;
-      const bx0 = R_bore * Math.cos(a1), by0 = R_bore * Math.sin(a1), bx1 = R_bore * Math.cos(a2), by1 = R_bore * Math.sin(a2);
+
+      const bx0 = getInternalR(u0, 0) * Math.cos(u0), by0 = getInternalR(u0, 0) * Math.sin(u0);
+      const bx1 = getInternalR(u1, 0) * Math.cos(u1), by1 = getInternalR(u1, 0) * Math.sin(u1);
+      const tx0 = getInternalR(u0, effH) * Math.cos(u0), ty0 = getInternalR(u0, effH) * Math.sin(u0);
+      const tx1 = getInternalR(u1, effH) * Math.cos(u1), ty1 = getInternalR(u1, effH) * Math.sin(u1);
 
       addQuad(X0, Y0, 0, X1, Y1, 0, X1, Y1, effH, X0, Y0, effH);
-      addQuad(bx1, by1, 0, bx0, by0, 0, bx0, by0, effH, bx1, by1, effH);
       addQuad(X0, Y0, 0, bx0, by0, 0, bx1, by1, 0, X1, Y1, 0);
-
-      if (part !== "acorn_nut") {
-        addQuad(X1, Y1, effH, bx1, by1, effH, bx0, by0, effH, X0, Y0, effH);
-      } else {
-        addTri(0, 0, effH, bx1, by1, effH, bx0, by0, effH);
-      }
+      addQuad(X1, Y1, effH, tx1, ty1, effH, tx0, ty0, effH, X0, Y0, effH);
     }
 
-    if (part === "acorn_nut") {
-      const dom_h = nut_across_flats * 0.45;
-      for (let i = 0; i < N; i++) {
-        const next = (i + 1) % N;
-        const [X0, Y0] = outer[i], [X1, Y1] = outer[next];
-        addTri(0, 0, effH + dom_h, X0, Y0, effH, X1, Y1, effH);
-      }
-    } else if (part === "wing_nut") {
-      const wing_span = Math.max(major_d * 4.6, 16), wing_th = Math.max(2.2, major_d * 0.6), wing_h = Math.max(7.0, nut_across_flats * 1.3);
-      const hw = wing_span / 2, ht = wing_th / 2;
-      const rootX = nut_across_flats * 0.42;
-      addQuad(rootX, -ht, 0, hw, -ht, 0, hw, ht, 0, rootX, ht, 0);
-      addQuad(rootX, -ht, wing_h, rootX, ht, wing_h, hw, ht, wing_h, hw, -ht, wing_h);
-      addQuad(rootX, -ht, 0, rootX, -ht, wing_h, hw, -ht, wing_h, hw, -ht, 0);
-      addQuad(hw, ht, 0, hw, ht, wing_h, rootX, ht, wing_h, rootX, ht, 0);
-      addQuad(rootX, ht, 0, rootX, ht, wing_h, rootX, -ht, wing_h, rootX, -ht, 0);
-      addQuad(hw, -ht, 0, hw, -ht, wing_h, hw, ht, wing_h, hw, ht, 0);
-
-      addQuad(-hw, -ht, 0, -rootX, -ht, 0, -rootX, ht, 0, -hw, ht, 0);
-      addQuad(-hw, -ht, wing_h, -hw, ht, wing_h, -rootX, ht, wing_h, -rootX, -ht, wing_h);
-      addQuad(-hw, -ht, 0, -hw, -ht, wing_h, -rootX, -ht, wing_h, -rootX, -ht, 0);
-      addQuad(-rootX, ht, 0, -rootX, ht, wing_h, -hw, ht, wing_h, -hw, ht, 0);
-      addQuad(-hw, ht, 0, -hw, ht, wing_h, -hw, -ht, wing_h, -hw, -ht, 0);
-      addQuad(-rootX, -ht, 0, -rootX, -ht, wing_h, -rootX, ht, wing_h, -rootX, ht, 0);
-    }
   } else if (part === "heat_set_insert") {
     const R_b = insert_diameter / 2;
     const R_fl = Math.max(R_b + 0.35, insert_flange_diameter / 2);
-    const R_in = (minor_d + 2 * thread_clearance) / 2, N = 36;
+    const N = 36;
     function getKnurlR(i) { return (i % 2 === 1) ? R_b + 0.20 : R_b; }
+
+    emitThreadedBore(insert_length);
 
     for (let i = 0; i < N; i++) {
       const next = (i + 1) % N;
-      const u0 = (i / N) * Math.PI * 2, u1 = (next / N) * Math.PI * 2;
+      const u0 = (i / N) * Math.PI * 2, u1 = (next === 0) ? 0 : (next / N) * Math.PI * 2;
       const r0 = getKnurlR(i), r1 = getKnurlR(next);
 
-      addQuad(R_fl*Math.cos(u0), R_fl*Math.sin(u0), 0,
-              R_fl*Math.cos(u1), R_fl*Math.sin(u1), 0,
-              R_fl*Math.cos(u1), R_fl*Math.sin(u1), insert_flange_height,
-              R_fl*Math.cos(u0), R_fl*Math.sin(u0), insert_flange_height);
+      const fx0 = R_fl * Math.cos(u0), fy0 = R_fl * Math.sin(u0);
+      const fx1 = R_fl * Math.cos(u1), fy1 = R_fl * Math.sin(u1);
+      const kx0 = r0 * Math.cos(u0), ky0 = r0 * Math.sin(u0);
+      const kx1 = r1 * Math.cos(u1), ky1 = r1 * Math.sin(u1);
 
-      addQuad(R_fl*Math.cos(u0), R_fl*Math.sin(u0), insert_flange_height,
-              R_fl*Math.cos(u1), R_fl*Math.sin(u1), insert_flange_height,
-              r1*Math.cos(u1), r1*Math.sin(u1), insert_flange_height,
-              r0*Math.cos(u0), r0*Math.sin(u0), insert_flange_height);
+      const bx0 = getInternalR(u0, 0) * Math.cos(u0), by0 = getInternalR(u0, 0) * Math.sin(u0);
+      const bx1 = getInternalR(u1, 0) * Math.cos(u1), by1 = getInternalR(u1, 0) * Math.sin(u1);
+      const tx0 = getInternalR(u0, insert_length) * Math.cos(u0), ty0 = getInternalR(u0, insert_length) * Math.sin(u0);
+      const tx1 = getInternalR(u1, insert_length) * Math.cos(u1), ty1 = getInternalR(u1, insert_length) * Math.sin(u1);
 
-      addQuad(r0*Math.cos(u0), r0*Math.sin(u0), insert_flange_height,
-              r1*Math.cos(u1), r1*Math.sin(u1), insert_flange_height,
-              r1*Math.cos(u1), r1*Math.sin(u1), insert_length,
-              r0*Math.cos(u0), r0*Math.sin(u0), insert_length);
+      addQuad(fx0, fy0, 0, fx1, fy1, 0, fx1, fy1, insert_flange_height, fx0, fy0, insert_flange_height);
+      addQuad(fx0, fy0, insert_flange_height, fx1, fy1, insert_flange_height, kx1, ky1, insert_flange_height, kx0, ky0, insert_flange_height);
+      addQuad(kx0, ky0, insert_flange_height, kx1, ky1, insert_flange_height, kx1, ky1, insert_length, kx0, ky0, insert_length);
 
-      addQuad(R_in*Math.cos(u1), R_in*Math.sin(u1), 0,
-              R_in*Math.cos(u0), R_in*Math.sin(u0), 0,
-              R_in*Math.cos(u0), R_in*Math.sin(u0), insert_length,
-              R_in*Math.cos(u1), R_in*Math.sin(u1), insert_length);
-
-      addQuad(R_in*Math.cos(u0), R_in*Math.sin(u0), 0,
-              R_in*Math.cos(u1), R_in*Math.sin(u1), 0,
-              R_fl*Math.cos(u1), R_fl*Math.sin(u1), 0,
-              R_fl*Math.cos(u0), R_fl*Math.sin(u0), 0);
-
-      addQuad(R_in*Math.cos(u0), R_in*Math.sin(u0), insert_length,
-              r0*Math.cos(u0), r0*Math.sin(u0), insert_length,
-              r1*Math.cos(u1), r1*Math.sin(u1), insert_length,
-              R_in*Math.cos(u1), R_in*Math.sin(u1), insert_length);
+      addQuad(fx0, fy0, 0, bx0, by0, 0, bx1, by1, 0, fx1, fy1, 0);
+      addQuad(kx1, ky1, insert_length, tx1, ty1, insert_length, tx0, ty0, insert_length, kx0, ky0, insert_length);
     }
   } else if (part === "wall_plug") {
     const R_b = plug_diameter / 2, R_bore = plug_bore_diameter / 2, R_col = R_b * 1.18, tip = Math.min(plug_length * 0.22, plug_diameter * 1.4), b_len = plug_length - tip, N = 36;
